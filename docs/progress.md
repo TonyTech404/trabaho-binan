@@ -29,6 +29,16 @@ lands, so another session can resume accurately.
   organization and staff. 180-day retention via the cron. See
   `docs/operations.md` → _Applications and résumés_.
 
+- **Accounts:** administrator invitations for Anthony
+  (hernandezmarkanthony61@gmail.com), Titus (titus@bantaybinan.com) and Barts
+  (barts@bantaybinan.com) are in `.secrets/invite-{anthony,titus,barts}.txt`
+  (single use, expire 31 October). Demo accounts used for the videos
+  (`demo-*@example.com`) and "Demo Bakeshop (not a real company)" are suspended;
+  their demo jobs are archived and their applications deleted.
+- **Demo videos:** `video/` records and renders narrated demos (jobseekers ~50 s,
+  back office ~76 s; desktop and mobile). Rendered files are in `video/out/`
+  (not committed). See `video/README.md`.
+
 **Next for the owner:**
 
 1. Accept the administrator invitation (link in
