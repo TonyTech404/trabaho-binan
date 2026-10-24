@@ -15,7 +15,16 @@ applications and résumé uploads are planned for a later phase. See
 [docs/progress.md](docs/progress.md) for the current state and
 [docs/project-plan.md](docs/project-plan.md) for the full plan.
 
-<!-- SCREENSHOTS -->
+<p>
+  <img src="docs/screenshots/directory-mobile.png" alt="Job directory on a phone, filtered to jobs open to high school graduates" width="260">
+  <img src="docs/screenshots/employer-mobile.png" alt="Employer dashboard on a phone, grouping jobs by what needs doing" width="260">
+</p>
+
+![A job page with key facts, the closing date and a "How to apply" panel](docs/screenshots/job-desktop.png)
+
+![The reviewer's job workspace flagging age, gender and appearance requirements before publication](docs/screenshots/review-desktop.png)
+
+_Screenshots use synthetic demo data (marked by the yellow banner)._
 
 ## What it does
 

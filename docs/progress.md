@@ -5,69 +5,101 @@ lands, so another session can resume accurately.
 
 ## Current status (2026-10-24)
 
-**Branch:** `feat/first-release`. Not yet pushed; the owner approved pushing to
-the public repository and opening a draft PR after the secret scan.
+**Production:** live at https://trabaho.bantaybinan.com.
 
-**Working tree:** a second Claude session (`trabaho-binan-e7`) is applying
-owner-requested branding in the same checkout: palette, fonts (Source Sans 3),
-logo, `docs/design-system.md`, `docs/brand/*`, `/brand-preview`. Stage
-explicit paths only. Production deploy is on hold until its branding commit
-lands.
+- Deployed commit `03a8f0c` from branch `feat/first-release`.
+- Worker `trabaho-binan`, version `9100c0f2-4903-4d91-934b-daead1db67a4`.
+
+**Branch:** `feat/first-release`. The owner approved pushing to the public
+GitHub repository and opening a draft PR after the secret scan.
+
+**Branding:** applied by a parallel session (`trabaho-binan-e7`): green/gold
+palette and Source Sans 3. The interim mark stays until the owner picks one
+of the logo concepts in `docs/brand/logo-concepts.md`.
 
 ### Done
 
-- **Foundation:** React Router 8 on Cloudflare Workers (Vite plugin), Tailwind
-  CSS 4 and shadcn/ui, TypeScript, ESLint 9 + jsx-a11y, Prettier.
-- **Database:** Drizzle schema and migrations `0000` (pgcrypto) and `0001`
-  (initial schema), applied to local, staging and production. Restricted
-  runtime role `trabaho_app` on every database; history tables are
-  append-only for it.
-- **Services:** job lifecycle and reviewed revisions, organizations and
-  verification/suspension, invitations and reset links, reports, public
-  search, expiry sweep, metrics, users, audit, settings, CSV export.
-- **Public site:** directory with search and filters, job pages, apply
-  redirect that re-checks status, report form, employer profiles,
-  help/safety, privacy, sitemap, robots.
-- **Dashboards:** reviewer/admin (overview, review queue, jobs, employers,
-  reports, users and access, audit, settings), employer (jobs, submit, revise,
-  close, profile), account/password.
-- **Security:** nonce CSP and headers, cross-site post rejection, Better Auth
-  without public routes, bcrypt in PostgreSQL, fresh sessions, rate limiting,
-  private/no-store for signed-in responses, public-page edge cache with purge.
-- **Tests:** 69 Vitest tests (unit + integration against PostgreSQL),
-  passing. Playwright suite written: 32 of 43 passed on the first run; the
-  failures were test selectors, an AA contrast failure on the green badge
-  token, and a wrangler env-var issue (fixed by the environment restructure).
-  Re-run after the branding lands.
-- **Ops:** CI workflow, MIT licence, `.env.example`, administrator invitation
-  script, encrypted backup/restore scripts (restore drill passed on staging:
-  row counts matched; non-empty target refused), README, CONTRIBUTING,
-  SECURITY, architecture and operations guides.
+- **Product:**
+  - Public directory and job pages.
+  - Reviewer and administrator dashboard.
+  - Invite-only employer dashboard.
+  - Invitations and password-reset links.
+  - Reports.
+  - Full vacancy lifecycle with reviewed revisions.
+  - Expiry cron, closure, suspension, audit history, CSV export.
+- **Security:**
+  - Server-side permission checks in every service.
+  - Nonce CSP and other security headers.
+  - Cross-site posts rejected; HTTP redirected to HTTPS.
+  - Restricted database role with append-only history tables.
+  - bcrypt in PostgreSQL; fresh sessions on every request.
+- **Tests:**
+  - 69 Vitest unit and integration tests, including the restricted-role tests.
+  - 43 Playwright end-to-end tests on the production build (desktop and
+    mobile), with axe WCAG 2.1 AA scans on public and dashboard pages.
+  - All pass locally. CI will run them on GitHub.
+- **Visual review:**
+  - Done with Playwright MCP at 360, 768 and 1440 px across public pages, the
+    reviewer dashboard and the employer dashboard.
+  - Fixes from the review: filters collapsed on small screens, closed-job
+    wording, peso formatting in diffs, error-summary labels, employer
+    required on the first submit.
+  - The branding session also ran axe and overflow checks on 24 pages.
+- **Ops:**
+  - CI workflow, MIT licence, administrator invitation script, encrypted
+    backup and restore scripts and drills.
+  - README with screenshots, CONTRIBUTING, SECURITY, architecture,
+    operations and design-system docs.
 
-### Next
+### Production verification (2026-10-24)
 
-1. After the branding commit: re-run the Playwright suite and fix failures;
-   visual inspection at 360/768/1440 of public pages and dashboards; README
-   screenshots.
-2. Add `tsc -p tsconfig.tools.json` to the `typecheck` script (`package.json`
-   is being committed by the branding session).
-3. Deploy staging, re-measure Worker CPU with the full UI.
-4. Production: set secret, deploy (custom domain), create the first admin
-   invitation with `--mark-environment production`, smoke-test, production
-   backup, record the deployed commit here.
-5. Secret scan of the full history, push, draft PR.
+| Check               | Result                                                                                                                                                                 |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| HTTPS / certificate | Valid (Google Trust Services); HTTP → 301 HTTPS; HSTS sent                                                                                                             |
+| Security headers    | CSP with per-response nonce, `X-Frame-Options: DENY`, `nosniff`, referrer policy                                                                                       |
+| Database            | `/healthz` → `{"ok":true,"database":"ok"}` through Hyperdrive with the restricted role                                                                                 |
+| Authentication      | Temporary QA admin accepted an invitation and signed in; sign-out ends the session                                                                                     |
+| Single-use links    | Reused invitation shows "This invitation can't be used"                                                                                                                |
+| Permissions         | Admin: `/manage`, `/manage/users` 200, `/employer` 403. Reviewer: `/manage` 200, `/manage/users` and `/manage/settings` 403. Signed out: `/manage` → sign-in           |
+| Revocation          | Suspending the QA reviewer redirected its next request to sign-in; its sign-in was refused (401)                                                                       |
+| Cross-site posts    | 403                                                                                                                                                                    |
+| Cron                | `7 * * * *` registered on `trabaho-binan` (verified via API); expiry exercised locally through the Worker's scheduled handler                                          |
+| Brand preview       | `/brand-preview` → 404 in production                                                                                                                                   |
+| Data hygiene        | Both QA accounts deleted afterwards; their audit entries remain. Database marked `environment = production`, so the seed script refuses it (verified on a marked copy) |
+
+The first administrator invitation (for the owner) was created with
+`npm run admin:invite` and saved to the owner's local `.secrets/` directory.
+
+### Remaining / owner actions
+
+1. Accept the administrator invitation (`.secrets/admin-invite-*.txt`, single
+   use, expires 7 days after 2026-10-24) and set a password.
+2. Move `.secrets/backups/*` and `.secrets/backup-passphrase` to storage the
+   owner controls (separately). Schedule weekly backups.
+3. Decide on Workers Paid (see CPU findings) before wider promotion.
+4. Choose a logo concept; confirm branding, support ownership and costs with
+   PESO (plan §11). Don't claim an official partnership until confirmed.
+5. Before using real data: name a PESO reviewer and backup; agree the
+   verification checklist and listing policy.
+6. Enable GitHub private vulnerability reporting (SECURITY.md relies on it).
+7. Maintenance note: before upgrading `pg` to v9, switch the per-request
+   client to a one-connection `Pool`. Concurrent loaders share one client,
+   and pg 9 removes client-side query queueing.
 
 ## Resources
 
-| Resource                                                 | Identifier                         | Plan                        |
-| -------------------------------------------------------- | ---------------------------------- | --------------------------- |
-| Neon project `trabaho-binan` (aws-ap-southeast-1, PG 18) | `sweet-frost-27860793`             | Free (pre-existing, reused) |
-| Neon branch `production` (default)                       | `br-blue-fire-b3go6619`            | Free                        |
-| Neon branch `staging` (synthetic data)                   | `br-flat-heart-b3j4hm3v`           | Free                        |
-| Hyperdrive `trabaho-binan-production` (caching disabled) | `b572c139ba864a67817c7a527bf3a9d9` | Free                        |
-| Hyperdrive `trabaho-binan-staging` (caching disabled)    | `03f35acb820b4021a930c8e9f24d29f5` | Free                        |
-| Worker `trabaho-binan-staging` (workers.dev)             | —                                  | Workers Free                |
-| Worker `trabaho-binan` (trabaho.bantaybinan.com)         | not yet deployed                   | Workers Free                |
+| Resource                                                                | Identifier                         | Plan                        |
+| ----------------------------------------------------------------------- | ---------------------------------- | --------------------------- |
+| Neon project `trabaho-binan` (aws-ap-southeast-1, PG 18)                | `sweet-frost-27860793`             | Free (pre-existing, reused) |
+| Neon branch `production` (default)                                      | `br-blue-fire-b3go6619`            | Free                        |
+| Neon branch `staging` (synthetic data)                                  | `br-flat-heart-b3j4hm3v`           | Free                        |
+| Hyperdrive `trabaho-binan-production` (caching disabled)                | `b572c139ba864a67817c7a527bf3a9d9` | Free                        |
+| Hyperdrive `trabaho-binan-staging` (caching disabled)                   | `03f35acb820b4021a930c8e9f24d29f5` | Free                        |
+| Worker `trabaho-binan` + custom domain `trabaho.bantaybinan.com` + cron | version `9100c0f2…`                | Workers Free                |
+| Worker `trabaho-binan-staging` (workers.dev)                            | —                                  | Workers Free                |
+
+No paid plan or add-on was enabled. `bantaybinan.com` and `www` still route to
+the unrelated `bantay-alerto` Worker; no zone settings were changed.
 
 Credentials live only in Cloudflare (Hyperdrive, Worker secrets) and in the
 developer's ignored `.secrets/` directory. Nothing secret is committed.
@@ -76,49 +108,62 @@ developer's ignored `.secrets/` directory. Nothing secret is committed.
 
 See also [architecture.md](architecture.md#decisions-log).
 
-- **Password hashing in PostgreSQL** (pgcrypto bcrypt, cost 10). Keeps the
-  hashing off the Workers Free 10 ms CPU budget.
-- **No transactional email.** Cloudflare Email Sending needs Workers Paid for
-  arbitrary recipients. Invitation and reset links are shown once to staff.
+- **Password hashing in PostgreSQL** (pgcrypto bcrypt, cost 10), because of
+  the Workers Free 10 ms CPU budget.
+- **No transactional email:** invitation and reset links are shown once to staff.
 - **Better Auth HTTP handler not mounted**; public sign-up disabled.
-- **No session cookie cache**: suspensions and role changes apply immediately.
-- **One cron trigger, production only** (the account limit is 5; 2 are used elsewhere).
-- **Hyperdrive query caching disabled** (plan §10).
+- **No session cookie cache:** suspensions and role changes apply immediately.
+- **One cron trigger, production only** (account limit is 5; 2 used elsewhere).
+- **Hyperdrive query caching disabled.**
 - **One organization per employer account** in the first release.
-- **All employer edits to live listings are reviewed**; staff can correct directly (audited).
+- **All employer edits to live listings are reviewed**; staff corrections are audited.
 - **Administrators include reviewer permissions** for the pilot.
-- **No PESO/City affiliation claims** in the UI; the operator name is a setting.
-  The owner-supplied seal and PESO logo files in the repository root are not
-  used or committed.
-- **Wrangler environments:** top level = local only; `env.staging` and
+- **No PESO/City affiliation claims.** The owner-supplied seal and PESO logo
+  files in the repository root are not used or committed.
+- **Wrangler environments:** the top level is local only; `env.staging` and
   `env.production` are explicit.
-- **Licence:** MIT (owner decision, 2026-10-24).
+- **HTTP → HTTPS in the Worker:** zone-wide settings belong to the parent domain.
+- **Licence:** MIT (owner decision).
 
-## Workers CPU findings (staging, 2026-10-24, spike build)
+## Workers CPU findings
 
-Measured with `wrangler tail` (`cpuTime` per invocation):
+Measured with `wrangler tail` (`cpuTime` per invocation) on staging with the
+full UI, 2026-10-24. Warm-path comparison: the same build in Node.
 
-| Route                             | Warm    | Observed range | Notes                                          |
-| --------------------------------- | ------- | -------------- | ---------------------------------------------- |
-| Cached public page                | 2–6 ms  | 2–6 ms         | Edge cache hit                                 |
-| `/healthz` (connect + `select 1`) | 3–5 ms  | 0–36 ms        | Framework ≈1 ms, DB connect ≈2 ms              |
-| Home with search (uncached)       | 9–15 ms | 9–153 ms       | 2 queries + SSR                                |
-| Session check                     | ~7 ms   | 7–111 ms       | Better Auth session lookup                     |
-| Sign-in                           | ~16 ms  | 16–118 ms      | bcrypt runs in PostgreSQL (wall time, not CPU) |
+| Route                         | Staging median | Staging minimum | Node warm median |
+| ----------------------------- | -------------- | --------------- | ---------------- |
+| Public page from edge cache   | 1 ms           | 1 ms            | —                |
+| Uncached job page             | 30 ms          | 10 ms           | 3.5 ms           |
+| Uncached directory search     | 51 ms          | 23 ms           | 4.8 ms           |
+| Reviewer overview (`/manage`) | 52 ms          | 19 ms           | 4.6 ms           |
+| Reviewer job workspace        | 69 ms          | 18 ms           | 5.7 ms           |
+| Sign-in                       | 26 ms          | 18 ms           | —                |
 
-No invocation was terminated (`outcome: ok` for all ~400 samples), but cold and
-warming instances regularly exceed 10 ms. The same build measured 0.6–8 ms
-warm in Node. Re-measure with the full UI. If uncached paths stay above budget,
-the options are further optimisation or Workers Paid (US$5/month). That is
-**an owner decision and must not be enabled without approval.**
+All ~140 requests returned `outcome: ok` and no request was terminated. But
+uncached server-rendered pages consistently exceed the Workers Free 10 ms
+budget. The gap from Node is mostly cold, low-traffic instances paying JIT
+compilation costs. Cloudflare documents tolerance for _occasional_
+overruns, so steady overruns risk intermittent 1102 errors as traffic grows.
+
+Mitigations in place:
+
+- Public job and listing pages are edge-cached (1–3 ms on hits).
+- The directory uses one query instead of two.
+- Password hashing runs in the database.
+
+**Acceptance criterion "fits the selected Worker CPU limits": not met on Free
+for uncached and dashboard pages.**
+
+Options for the owner:
+
+- Launch the pilot on Free and watch Workers Observability for `exceededCpu`.
+- Move to Workers Paid (US$5/month, 30 s CPU, 10 M requests/month).
+
+**Not enabled without approval.**
 
 ## Restore drills
 
-| Date       | Source                     | Target                                                     | Result                                                                                      |
-| ---------- | -------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| 2026-10-24 | Neon `staging` (synthetic) | Empty `restore_drill` DB on staging branch (dropped after) | Passed: checksum OK; users 4, organizations 5, jobs 15, audit events 49, migrations 2 match |
-
-## Blockers / open items for the owner
-
-- Branding session in progress (see above).
-- After launch, enable GitHub private vulnerability reporting (SECURITY.md relies on it).
+| Date       | Source                               | Target                                                         | Result                                                                                               |
+| ---------- | ------------------------------------ | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| 2026-10-24 | Neon `staging` (synthetic)           | Empty `restore_drill` DB on the staging branch (dropped after) | Passed: checksum OK; users 4, organizations 5, jobs 15, audit events 49, migrations 2 match          |
+| 2026-10-24 | Neon `production` (encrypted backup) | Empty `restore_drill` DB on the staging branch (dropped after) | Passed: checksum OK; users 0, organizations 0, jobs 0, audit events 6, migrations 2, settings intact |
