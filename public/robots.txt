@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /manage
+Disallow: /employer
+Disallow: /account
+Disallow: /invite
+Disallow: /reset-password
+Disallow: /apply
+Disallow: /report
+Sitemap: /sitemap.xml

@@ -114,7 +114,14 @@ export async function resolveReport(
     if (report.status !== "open") throw new ConflictError("This report has already been handled.");
     const [updated] = await tx
       .update(listingReports)
-      .set({ status: outcome, resolutionNote: note, resolvedById: actor.id, resolvedAt: now })
+      // The reporter's optional contact details are erased once the report is handled.
+      .set({
+        status: outcome,
+        resolutionNote: note,
+        resolvedById: actor.id,
+        resolvedAt: now,
+        reporterContact: null,
+      })
       .where(eq(listingReports.id, reportId))
       .returning();
     await recordAudit(tx, actor, {

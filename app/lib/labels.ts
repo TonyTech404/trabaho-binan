@@ -120,6 +120,7 @@ export const JOB_EVENT_LABELS: Record<string, string> = {
   expired: "Expired at deadline",
   archived: "Archived",
   renewed: "Renewed",
+  confirmed: "Confirmed still open",
   reopened: "Reopened",
   revision_submitted: "Changes submitted for review",
   revision_approved: "Changes approved",

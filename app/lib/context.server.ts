@@ -11,6 +11,8 @@ export interface AppServices {
   nonce: string;
   db(): Promise<Database>;
   auth(): Promise<Auth>;
+  /** Run non-critical work (e.g. metrics) after the response; the DB closes once it settles. */
+  defer(task: () => Promise<unknown>): void;
   dispose(): Promise<void>;
 }
 
@@ -25,6 +27,7 @@ export function createAppServices(
   const baseUrl = (env.APP_URL || new URL(request.url).origin).replace(/\/$/, "");
   const database = createLazyDatabase(connectionString);
   let auth: Promise<Auth> | undefined;
+  const deferred: Promise<unknown>[] = [];
 
   return {
     env,
@@ -42,7 +45,17 @@ export function createAppServices(
       );
       return auth;
     },
-    dispose: () => database.close(),
+    defer(task) {
+      deferred.push(
+        task().catch((error) =>
+          console.error(JSON.stringify({ deferredTaskFailed: String(error) })),
+        ),
+      );
+    },
+    async dispose() {
+      await Promise.allSettled(deferred);
+      await database.close();
+    },
   };
 }
 

@@ -42,3 +42,6 @@ worker-configuration.d.ts
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+# Playwright MCP session artefacts
+/.playwright-mcp/

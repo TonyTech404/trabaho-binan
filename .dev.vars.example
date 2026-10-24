@@ -1,0 +1,5 @@
+# Local Worker variables for `npm run dev` (copy to .dev.vars). Placeholders only.
+# Generate the secret with: openssl rand -base64 48
+BETTER_AUTH_SECRET=replace-with-a-random-value-of-at-least-32-characters
+APP_ENV=development
+APP_URL=http://localhost:5173

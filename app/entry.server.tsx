@@ -18,7 +18,9 @@ export default async function handleRequest(
     return new Response(null, { status: responseStatusCode, headers: responseHeaders });
   }
 
-  const { nonce } = loadContext.get(appContext);
+  // CSP (and therefore the nonce) is only applied outside development; skipping
+  // it in dev avoids a harmless hydration warning about the attribute.
+  const nonce = import.meta.env.DEV ? undefined : loadContext.get(appContext).nonce;
   let shellRendered = false;
   const userAgent = request.headers.get("user-agent");
 
