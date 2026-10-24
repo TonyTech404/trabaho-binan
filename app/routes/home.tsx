@@ -112,6 +112,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const navigation = useNavigation();
   const loading = navigation.state === "loading" && navigation.location?.pathname === "/";
   const hasCriteria = !!filters.q || activeFilterCount(filters) > 0;
+  // With no listings at all, filters, sorting and a "0 open jobs" heading add nothing.
+  const nothingListed = result.total === 0 && !hasCriteria;
   const first = (result.page - 1) * 20 + 1;
   const last = first + result.jobs.length - 1;
 
@@ -152,17 +154,30 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           </div>
         </section>
 
-        <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[16.5rem_minmax(0,1fr)] lg:gap-10">
-          <aside aria-label="Filters" className="lg:pt-1">
-            <JobFilters filters={filters} cities={cities} />
-          </aside>
+        <div
+          className={cn(
+            "mx-auto grid max-w-6xl gap-6 px-4 py-6 sm:px-6",
+            !nothingListed && "lg:grid-cols-[16.5rem_minmax(0,1fr)] lg:gap-10",
+          )}
+        >
+          {nothingListed ? null : (
+            <aside aria-label="Filters" className="lg:pt-1">
+              <JobFilters filters={filters} cities={cities} />
+            </aside>
+          )}
 
           <section
-            aria-labelledby="results-heading"
+            aria-labelledby={nothingListed ? undefined : "results-heading"}
+            aria-label={nothingListed ? "Job listings" : undefined}
             aria-busy={loading}
             className={cn(loading && "opacity-60")}
           >
-            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+            <div
+              className={cn(
+                "flex flex-wrap items-center justify-between gap-x-3 gap-y-2",
+                nothingListed && "hidden",
+              )}
+            >
               <div>
                 <h2 id="results-heading" className="text-2xl font-bold">
                   {result.total === 1 ? "1 open job" : `${result.total} open jobs`}
@@ -223,7 +238,11 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 <p>Try a shorter word, check the spelling, or remove a filter.</p>
               </EmptyState>
             ) : (
-              <EmptyState className="mt-4" icon={SearchX} title="No open jobs right now">
+              <EmptyState
+                className={nothingListed ? "max-w-3xl" : "mt-4"}
+                icon={SearchX}
+                title="No open jobs right now"
+              >
                 <p>
                   New vacancies are added after they are reviewed. Check again soon. Employers who
                   want to list a vacancy can find out how on the{" "}
