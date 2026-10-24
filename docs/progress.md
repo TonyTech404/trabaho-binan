@@ -3,20 +3,39 @@
 Working log for the first release. Update it whenever a coherent piece of work
 lands, so another session can resume accurately.
 
-## Current status (2026-10-24)
+## Current status (2026-10-24, evening)
 
 **Production:** live at https://trabaho.bantaybinan.com.
 
-- Deployed commit `7e98ecd` from branch `feat/first-release`.
-- Worker `trabaho-binan`, version `70261148-5934-4495-a1a1-9674d57c4bfc`.
-- Staging runs the same commit (version `6e33efc2-6e2a-4def-947c-4f7d9a6d7c4f`).
+- Deployed commit `e462ecf` from `main` (PR #1 merged as `3e06e25`).
+- Worker `trabaho-binan`, version `998c6110-2ba8-4f5d-8c7d-4ba091e265f8`.
+- Staging runs the same commit (version `47d70449-3a58-4496-86b5-c3c283f276ce`).
+- Database migrations `0000`–`0002` are applied on staging and production.
 
-**Branch:** `feat/first-release`. The owner approved pushing to the public
-GitHub repository and opening a draft PR after the secret scan.
+**Since the first release:**
 
-**Branding:** applied by a parallel session (`trabaho-binan-e7`): green/gold
-palette and Source Sans 3. The interim mark stays until the owner picks one
-of the logo concepts in `docs/brand/logo-concepts.md`.
+- **Official branding:** the owner confirmed permission from PESO Biñan and the
+  City, so the header, footer, sign-in card and favicon use the PESO logo and
+  City of Biñan seal (unaltered; excluded from the MIT licence). The logo
+  concepts were retired.
+- **Real listings:** 21 current Biñan vacancies imported into production on
+  2026-10-24 (`data/imports/2026-10-24-binan.json`): 15 from PhilJobNet, 6 from
+  DepEd SDO Biñan City memo No. 357. All are published, unconfirmed with the
+  employer, and link to their source; 18 use a 30-day closing date because the
+  source gives none (`--publish-undated`, owner's request for the demo). They
+  close automatically between 3 and 22 November.
+- **Résumé applications:** jobs posted on the site can take applications with a
+  résumé, stored in private R2 buckets and visible only to the job's
+  organization and staff. 180-day retention via the cron. See
+  `docs/operations.md` → _Applications and résumés_.
+
+**Next for the owner:**
+
+1. Accept the administrator invitation (link in
+   `.secrets/admin-invite-2026-10-24T09-21-15-245Z.txt`, expires 31 October).
+2. Reconfirm the imported listings with employers (Overview → _Needs
+   reconfirmation_), and add new vacancies or employers from the dashboard.
+3. Resolve the GitHub billing lock so CI runs.
 
 ### Done
 
@@ -35,9 +54,11 @@ of the logo concepts in `docs/brand/logo-concepts.md`.
   - Restricted database role with append-only history tables.
   - bcrypt in PostgreSQL; fresh sessions on every request.
 - **Tests:**
-  - 69 Vitest unit and integration tests, including the restricted-role tests.
-  - 43 Playwright end-to-end tests on the production build (desktop and
-    mobile), with axe WCAG 2.1 AA scans on public and dashboard pages.
+  - 81 Vitest unit and integration tests, including the restricted-role and
+    application access tests.
+  - 45 Playwright end-to-end tests on the production build (desktop and
+    mobile), with axe WCAG 2.1 AA scans, including the résumé application
+    journey.
   - All pass locally. CI will run them on GitHub.
 - **Visual review:**
   - Done with Playwright MCP at 360, 768 and 1440 px across public pages, the
@@ -65,7 +86,6 @@ of the logo concepts in `docs/brand/logo-concepts.md`.
 | Revocation          | Suspending the QA reviewer redirected its next request to sign-in; its sign-in was refused (401)                                                                       |
 | Cross-site posts    | 403                                                                                                                                                                    |
 | Cron                | `7 * * * *` registered on `trabaho-binan` (verified via API); expiry exercised locally through the Worker's scheduled handler                                          |
-| Brand preview       | `/brand-preview` → 404 in production                                                                                                                                   |
 | Data hygiene        | Both QA accounts deleted afterwards; their audit entries remain. Database marked `environment = production`, so the seed script refuses it (verified on a marked copy) |
 
 The first administrator invitation (for the owner) was created with
