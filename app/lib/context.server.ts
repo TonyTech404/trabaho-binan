@@ -1,5 +1,6 @@
 import { createContext, type RouterContextProvider } from "react-router";
 import { createLazyDatabase, type Database } from "~/db/client.server";
+import { r2ResumeStore, type ResumeStore } from "./resume";
 import { createAuth, SESSION_COOKIE_PREFIX, type Auth } from "./auth.server";
 
 export interface AppServices {
@@ -11,6 +12,8 @@ export interface AppServices {
   nonce: string;
   db(): Promise<Database>;
   auth(): Promise<Auth>;
+  /** Private résumé storage (R2). */
+  resumes: ResumeStore;
   /** Run non-critical work (e.g. metrics) after the response; the DB closes once it settles. */
   defer(task: () => Promise<unknown>): void;
   dispose(): Promise<void>;
@@ -35,6 +38,7 @@ export function createAppServices(
     baseUrl,
     nonce: createNonce(),
     db: () => database.get(),
+    resumes: r2ResumeStore(env.RESUMES),
     auth() {
       auth ??= database.get().then((db) =>
         createAuth(db, {

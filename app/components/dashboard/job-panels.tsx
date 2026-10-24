@@ -146,6 +146,11 @@ const DIFF_FIELDS: {
   { key: "applicationUrl", label: "Application link" },
   { key: "applicationEmail", label: "Application email" },
   { key: "walkInInstructions", label: "Walk-in instructions" },
+  {
+    key: "acceptsApplications",
+    label: "Applications on Trabaho Biñan",
+    format: (v) => (v ? "Yes" : "No"),
+  },
   { key: "applicationNotes", label: "What to prepare" },
   { key: "deadlineAt", label: "Closing date", format: (v) => formatDate(v as string) },
   { key: "contactName", label: "Contact name" },
@@ -302,16 +307,20 @@ interface SummaryJob {
   applicationUrl: string | null;
   applicationEmail: string | null;
   walkInInstructions: string | null;
+  acceptsApplications: boolean;
 }
 
 export function JobFactsCard({
   job,
   lastConfirmedByName,
   metrics,
+  applications,
 }: {
   job: SummaryJob;
   lastConfirmedByName?: string | null;
   metrics?: { views: number; applyClicks: number };
+  /** Applications sent on this site, with the inbox filtered to this job. */
+  applications?: { count: number; href: string };
 }) {
   const isPublic = !!job.firstPublishedAt;
   const rows: [string, React.ReactNode][] = [
@@ -328,6 +337,7 @@ export function JobFactsCard({
     [
       "How to apply",
       [
+        job.acceptsApplications ? "On Trabaho Biñan" : null,
         job.applicationUrl ? "Online link" : null,
         job.applicationEmail ? "Email" : null,
         job.walkInInstructions ? "Walk-in" : null,
@@ -336,6 +346,13 @@ export function JobFactsCard({
         .join(", "),
     ],
   ];
+  if (applications && (job.acceptsApplications || applications.count > 0))
+    rows.push([
+      "Applications",
+      <Link key="applications" to={applications.href} className="link">
+        {applications.count === 1 ? "1 application" : `${applications.count} applications`}
+      </Link>,
+    ]);
   if (metrics)
     rows.push([
       "Views and apply clicks",

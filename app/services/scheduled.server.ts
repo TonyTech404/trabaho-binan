@@ -1,5 +1,7 @@
 import { createLazyDatabase } from "~/db/client.server";
 import { purgePublicPaths } from "~/lib/public-cache.server";
+import { r2ResumeStore } from "~/lib/resume";
+import { purgeExpiredApplications } from "./applications.server";
 import { expireDueJobs } from "./jobs.server";
 
 /**
@@ -18,6 +20,8 @@ export async function runScheduledTasks(env: Env, now: Date) {
       ]);
     }
     console.log(JSON.stringify({ task: "expire-jobs", expired: expired.length }));
+    const purged = await purgeExpiredApplications(db, r2ResumeStore(env.RESUMES), now);
+    console.log(JSON.stringify({ task: "purge-applications", purged }));
   } finally {
     await database.close();
   }

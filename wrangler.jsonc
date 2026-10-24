@@ -38,6 +38,8 @@
     { "name": "AUTH_LIMITER", "namespace_id": "4001", "simple": { "limit": 10, "period": 60 } },
     { "name": "FORM_LIMITER", "namespace_id": "4002", "simple": { "limit": 5, "period": 60 } },
   ],
+  // Private résumé storage. Locally this is a simulated bucket on disk.
+  "r2_buckets": [{ "binding": "RESUMES", "bucket_name": "trabaho-binan-resumes-dev" }],
   "triggers": { "crons": [] },
   "env": {
     "staging": {
@@ -58,6 +60,7 @@
         { "name": "AUTH_LIMITER", "namespace_id": "4201", "simple": { "limit": 10, "period": 60 } },
         { "name": "FORM_LIMITER", "namespace_id": "4202", "simple": { "limit": 5, "period": 60 } },
       ],
+      "r2_buckets": [{ "binding": "RESUMES", "bucket_name": "trabaho-binan-resumes-staging" }],
       // No cron on staging: the account allows 5 Cron Triggers in total.
       "triggers": { "crons": [] },
     },
@@ -85,7 +88,9 @@
         { "name": "AUTH_LIMITER", "namespace_id": "4101", "simple": { "limit": 10, "period": 60 } },
         { "name": "FORM_LIMITER", "namespace_id": "4102", "simple": { "limit": 5, "period": 60 } },
       ],
-      // Hourly expiry sweep. Public queries also enforce deadlines if this fails.
+      // Private bucket (no public access): résumés are only served through the app.
+      "r2_buckets": [{ "binding": "RESUMES", "bucket_name": "trabaho-binan-resumes" }],
+      // Hourly expiry sweep and application retention. Public queries also enforce deadlines.
       "triggers": { "crons": ["7 * * * *"] },
     },
   },

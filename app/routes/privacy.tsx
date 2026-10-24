@@ -20,22 +20,41 @@ export default function Privacy({ loaderData }: Route.ComponentProps) {
   return (
     <ContentPage
       title="Privacy"
-      intro={
-        <p>What Trabaho Biñan keeps, and why. This is a plain-language summary for the pilot.</p>
-      }
+      intro={<p>What Trabaho Biñan keeps, and why. This is a plain-language summary.</p>}
     >
       <section>
         <h2>If you are looking for work</h2>
         <ul>
-          <li>You do not need an account. The site does not collect résumés or applications.</li>
+          <li>You do not need an account to browse or to apply.</li>
           <li>No advertising or tracking cookies are used.</li>
           <li>
             The site counts job-page views and clicks on application links per day, per job. These
             are totals only; no names, IP addresses or device details are stored with them.
           </li>
           <li>
-            When you apply, you deal directly with the employer through their website, email or
-            office. Their own privacy practices apply.
+            When you apply through an employer’s website, email or office, you deal directly with
+            the employer, and their own privacy practices apply.
+          </li>
+        </ul>
+      </section>
+      <section id="applications">
+        <h2>If you apply with your résumé on this site</h2>
+        <ul>
+          <li>
+            Some jobs let you apply here. The site keeps the name, email address, mobile number and
+            message you enter, and your résumé file.
+          </li>
+          <li>
+            Only the employer for that job and PESO Biñan staff can see your application. Your
+            résumé is stored privately and is never shown publicly. Every download is recorded.
+          </li>
+          <li>
+            Your details are used only to consider you for that job. Applications and résumés are
+            deleted automatically about six months after you send them.
+          </li>
+          <li>
+            You can ask for your application to be corrected or deleted sooner. Use the contact
+            below and give your application reference.
           </li>
         </ul>
       </section>
@@ -67,8 +86,9 @@ export default function Privacy({ loaderData }: Route.ComponentProps) {
       <section>
         <h2>Hosting</h2>
         <p>
-          The site runs on Cloudflare and stores data with Neon in Singapore. These providers keep
-          short-term technical logs for security and reliability.
+          The site runs on Cloudflare and stores data with Neon in Singapore. Résumés are stored in
+          a private Cloudflare R2 bucket in the Asia-Pacific region. These providers keep short-term
+          technical logs for security and reliability.
         </p>
       </section>
       <section>

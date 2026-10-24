@@ -234,6 +234,32 @@ branch), restore the latest backup into it, compare the row counts the script
 prints with the source, then drop it. Record the date and result in
 `docs/progress.md`.
 
+## Applications and résumés
+
+Jobs posted on the site can take applications with a résumé (tick _Accept
+applications on Trabaho Biñan_ on the job form; it is on by default for new
+jobs and off for imported listings).
+
+- Résumés are stored in private R2 buckets: `trabaho-binan-resumes`
+  (production) and `trabaho-binan-resumes-staging`. Public access (r2.dev and
+  custom domains) is disabled; keep it that way. Locally, `npm run dev` uses a
+  simulated bucket on disk.
+- Only members of the job's organization and staff (reviewers, admins) can see
+  an application. Résumés are streamed through `/applications/:id/resume`
+  after a permission check, and every download is recorded in the audit
+  history.
+- Files are checked by their contents (PDF, DOCX or DOC only) and limited to
+  5 MB. The form is rate-limited per connection.
+- **Retention:** the hourly cron deletes applications and their résumés 180
+  days after they were sent (`APPLICATION_RETENTION_DAYS`). Staging has no
+  cron, so its applications are not purged automatically.
+- **Deletion requests:** find the application by its reference (TB-…) in
+  Applications, then delete the database row and the R2 object
+  (`npx wrangler r2 object delete trabaho-binan-resumes/<resume_key>`). Record
+  the request in your incident or request log.
+- R2 Free covers 10 GB of storage and 1 million writes per month; résumés are
+  small, but check usage monthly with the other quotas.
+
 ## Routine maintenance
 
 Weekly:

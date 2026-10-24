@@ -1,6 +1,7 @@
 import { DashboardShell, employerNav } from "~/components/dashboard/shell";
 import { getServices } from "~/lib/context.server";
 import { requireEmployerViewer } from "~/lib/session.server";
+import { countNewApplications } from "~/services/applications.server";
 import type { Route } from "./+types/layout";
 
 // Every /employer request passes this check; services also scope every query to the viewer's organization.
@@ -12,8 +13,11 @@ export const middleware: Route.MiddlewareFunction[] = [
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const viewer = await requireEmployerViewer(request, context);
+  const services = getServices(context);
+  const applications = await countNewApplications(await services.db(), viewer);
   return {
-    appEnv: getServices(context).env.APP_ENV,
+    appEnv: services.env.APP_ENV,
+    counts: { applications },
     viewer: { name: viewer.name, role: viewer.role, organizationName: viewer.organizationName },
   };
 }
@@ -26,7 +30,7 @@ export default function EmployerLayout({ loaderData }: Route.ComponentProps) {
       appEnv={loaderData.appEnv}
       title="Employer dashboard"
       viewer={loaderData.viewer}
-      items={employerNav()}
+      items={employerNav(loaderData.counts)}
     />
   );
 }

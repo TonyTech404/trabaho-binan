@@ -46,9 +46,10 @@ export default function Help({ loaderData }: Route.ComponentProps) {
       <section id="applying">
         <h2>Applying</h2>
         <p>
-          Each job page has a <strong>How to apply</strong> section. Depending on the employer, you
-          apply on their website, by email, or in person. Trabaho Biñan does not collect
-          applications or résumés.
+          Each job page has a <strong>How to apply</strong> section. Some jobs let you apply right
+          here with your résumé: it goes to the employer and to PESO Biñan, and you get a reference
+          number. For other jobs you apply on the employer’s website, by email or in person.
+          Listings copied from other sites send you to the original announcement.
         </p>
         <p>
           Read the qualifications and closing date before you apply, and prepare the documents the

@@ -10,9 +10,8 @@ belong to their owners and are **not** covered by the MIT licence; see
 [app/assets/logos/README.md](app/assets/logos/README.md).
 
 **Status:** first release (public directory, review dashboard and employer
-pilot), deployed for pilot use at
-[trabaho.bantaybinan.com](https://trabaho.bantaybinan.com). Direct
-applications and résumé uploads are planned for a later phase. See
+pilot, with résumé applications), deployed for pilot use at
+[trabaho.bantaybinan.com](https://trabaho.bantaybinan.com). See
 [docs/progress.md](docs/progress.md) for the current state and
 [docs/project-plan.md](docs/project-plan.md) for the full plan.
 
@@ -36,6 +35,9 @@ _Screenshots use synthetic demo data (marked by the yellow banner)._
   work setup.
 - Every listing shows where the work is, the pay (or _Not disclosed_), the
   closing date, and clear instructions to apply online, by email or in person.
+- Jobs posted by employers or PESO can take applications here: the jobseeker
+  uploads a résumé (PDF or Word, up to 5 MB) and gets a reference number.
+  Listings copied from public announcements link to the original instead.
 - Closed and expired listings keep their page with a notice, but cannot be
   applied to. Anyone can report a listing.
 
@@ -53,6 +55,8 @@ _Screenshots use synthetic demo data (marked by the yellow banner)._
 - Draft and submit vacancies, read review feedback, close a filled job
   immediately, and request changes or extensions. The approved version stays
   live until a reviewer approves the change.
+- An applications inbox for their own jobs: contact details, résumé download
+  and a status (new, reviewed, shortlisted, interview, hired, not selected).
 - Employers only ever see their own organization's records.
 
 **For administrators**
@@ -60,8 +64,9 @@ _Screenshots use synthetic demo data (marked by the yellow banner)._
 - Invite staff, change roles, suspend accounts (effective immediately), issue
   password-reset links, view the audit history and edit site settings.
 
-Out of scope for this release: jobseeker accounts, applications and résumés,
-AI matching, chat, SMS and automatic Facebook posting.
+Out of scope for this release: jobseeker accounts and saved profiles,
+applicant-visible status tracking, email notifications, AI matching, chat, SMS
+and automatic Facebook posting.
 
 ## Technology
 

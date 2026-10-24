@@ -13,6 +13,7 @@ import { withNotice } from "~/lib/route-helpers.server";
 import { requireViewer } from "~/lib/session.server";
 import type { FieldErrors } from "~/lib/validation";
 import { recordAudit } from "~/services/common.server";
+import { countNewApplications } from "~/services/applications.server";
 import { getStaffNavCounts } from "~/services/job-queries.server";
 import type { Route } from "./+types/account";
 
@@ -24,10 +25,12 @@ export const meta = () => [
 export async function loader({ request, context }: Route.LoaderArgs) {
   const viewer = await requireViewer(request, context);
   const services = getServices(context);
-  const counts =
-    viewer.role === "employer"
-      ? { review: 0, reports: 0 }
-      : await getStaffNavCounts(await services.db());
+  const db = await services.db();
+  const [jobCounts, applications] = await Promise.all([
+    viewer.role === "employer" ? { review: 0, reports: 0 } : getStaffNavCounts(db),
+    countNewApplications(db, viewer),
+  ]);
+  const counts = { ...jobCounts, applications };
   return {
     appEnv: services.env.APP_ENV,
     viewer: {
@@ -92,7 +95,7 @@ export default function Account({ loaderData, actionData }: Route.ComponentProps
   const { viewer, appEnv, counts } = loaderData;
   const navigation = useNavigation();
   const errors = actionData?.errors;
-  const items = viewer.role === "employer" ? employerNav() : staffNav(viewer.role, counts);
+  const items = viewer.role === "employer" ? employerNav(counts) : staffNav(viewer.role, counts);
   return (
     <DashboardShell
       appEnv={appEnv}

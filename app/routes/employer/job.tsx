@@ -24,6 +24,7 @@ import { purgeJobPages, serviceErrorResult, withNotice } from "~/lib/route-helpe
 import { requireEmployerViewer } from "~/lib/session.server";
 import { formatDateTime } from "~/lib/time";
 import { getJobForActor } from "~/services/job-queries.server";
+import { countApplicationsForJob } from "~/services/applications.server";
 import {
   closeJob,
   confirmJob,
@@ -42,7 +43,10 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   const db = await getServices(context).db();
   try {
     // Returns 404 for other organizations' jobs, including by direct URL.
-    const detail = await getJobForActor(db, viewer, params.jobId);
+    const [detail, applicationCount] = await Promise.all([
+      getJobForActor(db, viewer, params.jobId),
+      countApplicationsForJob(db, viewer, params.jobId),
+    ]);
     const feedback = detail.events.find(
       (e) =>
         [
@@ -58,6 +62,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
       openRevision: detail.openRevision,
       events: detail.events,
       metrics: detail.metrics,
+      applicationCount,
       feedback: feedback ?? null,
       flags: findPolicyFlags(detail.job.title, detail.job.description, detail.job.qualifications),
       deadlinePassed: detail.job.deadlineAt.getTime() <= Date.now(),
@@ -124,7 +129,8 @@ const STATUS_HELP: Record<string, string> = {
 };
 
 export default function EmployerJob({ loaderData, actionData }: Route.ComponentProps) {
-  const { job, openRevision, events, feedback, flags, metrics, deadlinePassed } = loaderData;
+  const { job, openRevision, events, feedback, flags, metrics, deadlinePassed, applicationCount } =
+    loaderData;
   const s = job.status;
   const live = s === "published" || s === "paused";
   return (
@@ -301,7 +307,14 @@ export default function EmployerJob({ loaderData, actionData }: Route.ComponentP
           </section>
         </div>
         <div className="space-y-6">
-          <JobFactsCard job={job} metrics={metrics} />
+          <JobFactsCard
+            job={job}
+            metrics={metrics}
+            applications={{
+              count: applicationCount,
+              href: `/employer/applications?job=${job.id}`,
+            }}
+          />
           <JobTimeline events={events} />
         </div>
       </div>

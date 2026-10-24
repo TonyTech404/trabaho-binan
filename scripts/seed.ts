@@ -189,6 +189,7 @@ async function main() {
 
     await publish(bakeshop.id, {
       title: "Cashier",
+      acceptsApplications: "on",
       description: `${SAMPLE_NOTE}\n\nHandle customer payments, keep the counter tidy and help pack orders during peak hours.\n- Morning or afternoon shift\n- Training provided`,
       qualifications: "Basic math skills. Friendly with customers.",
       skills: "cash handling, customer service",
@@ -207,6 +208,7 @@ async function main() {
     });
     const operator = await publish(factory.id, {
       title: "Production Operator",
+      acceptsApplications: "on",
       description: `${SAMPLE_NOTE}\n\nOperate packaging machines, check product quality and follow safety procedures on the production floor.`,
       qualifications: "Willing to work on rotating shifts.",
       skills: "machine operation, quality checks",
@@ -224,6 +226,7 @@ async function main() {
     });
     await publish(logistics.id, {
       title: "Warehouse Helper",
+      acceptsApplications: "on",
       description: `${SAMPLE_NOTE}\n\nLoad and unload deliveries, sort parcels and keep the warehouse organised.`,
       educationLevel: "elementary",
       experienceLevel: "none",
@@ -327,6 +330,7 @@ async function main() {
     });
     await publish(cafe.id, {
       title: "Kitchen Staff",
+      acceptsApplications: "on",
       description: `${SAMPLE_NOTE}\n\nPrepare ingredients, cook simple dishes and wash up during service.`,
       educationLevel: "high_school",
       experienceLevel: "none",

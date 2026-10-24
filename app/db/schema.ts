@@ -106,6 +106,16 @@ export const reportReasonEnum = pgEnum("report_reason", [
 ]);
 export const reportStatusEnum = pgEnum("report_status", ["open", "resolved", "dismissed"]);
 
+export const applicationStatusEnum = pgEnum("application_status", [
+  "submitted",
+  "reviewed",
+  "shortlisted",
+  "interview",
+  "hired",
+  "not_selected",
+  "withdrawn",
+]);
+
 export const accountLinkPurposeEnum = pgEnum("account_link_purpose", [
   "invitation",
   "password_reset",
@@ -254,6 +264,8 @@ const jobContentColumns = () => ({
   applicationUrl: text("application_url"),
   applicationEmail: text("application_email"),
   walkInInstructions: text("walk_in_instructions"),
+  /** Applicants can apply on this site with a résumé (stored privately in R2). */
+  acceptsApplications: boolean("accepts_applications").notNull().default(false),
   applicationNotes: text("application_notes"),
   deadlineAt: timestamp("deadline_at", { withTimezone: true }).notNull(),
   // Internal only — never rendered on public pages.
@@ -366,6 +378,47 @@ export const listingReports = pgTable(
   ],
 );
 
+/**
+ * Applications made on this site. Personal data: visible only to the job's
+ * organization and to staff, deleted after the retention period (see
+ * services/applications.server.ts). The résumé itself lives in R2 under
+ * resumeKey, never in a public bucket.
+ */
+export const applications = pgTable(
+  "applications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    /** Short reference shown to the applicant. */
+    reference: text("reference").notNull().unique(),
+    jobId: uuid("job_id")
+      .notNull()
+      .references(() => jobs.id, { onDelete: "cascade" }),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    fullName: text("full_name").notNull(),
+    email: text("email"),
+    phone: text("phone"),
+    message: text("message"),
+    resumeKey: text("resume_key").notNull(),
+    resumeFilename: text("resume_filename").notNull(),
+    resumeContentType: text("resume_content_type").notNull(),
+    resumeSize: integer("resume_size").notNull(),
+    status: applicationStatusEnum("status").notNull().default("submitted"),
+    statusUpdatedAt: timestamp("status_updated_at", { withTimezone: true }),
+    statusUpdatedById: uuid("status_updated_by_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    consentedAt: timestamp("consented_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("applications_org_idx").on(t.organizationId, t.createdAt),
+    index("applications_job_idx").on(t.jobId, t.createdAt),
+    index("applications_created_idx").on(t.createdAt),
+  ],
+);
+
 /** Daily aggregates only — no per-visitor data is stored. */
 export const jobMetricsDaily = pgTable(
   "job_metrics_daily",
@@ -438,6 +491,8 @@ export type Job = typeof jobs.$inferSelect;
 export type JobRevision = typeof jobRevisions.$inferSelect;
 export type JobEvent = typeof jobEvents.$inferSelect;
 export type ListingReport = typeof listingReports.$inferSelect;
+export type Application = typeof applications.$inferSelect;
+export type ApplicationStatus = (typeof applicationStatusEnum.enumValues)[number];
 export type AuditEvent = typeof auditEvents.$inferSelect;
 export type AccountLink = typeof accountLinks.$inferSelect;
 export type UserRole = (typeof userRoleEnum.enumValues)[number];

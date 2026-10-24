@@ -54,6 +54,7 @@ import {
   reviewRevision,
 } from "~/services/jobs.server";
 import { listReportsForJob } from "~/services/reports.server";
+import { countApplicationsForJob } from "~/services/applications.server";
 import type { Route } from "./+types/job";
 
 export function meta({ loaderData }: Route.MetaArgs) {
@@ -64,8 +65,11 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   const viewer = await requireStaffViewer(request, context);
   const db = await getServices(context).db();
   try {
-    const detail = await getJobForActor(db, viewer, params.jobId);
-    const reports = await listReportsForJob(db, viewer, params.jobId);
+    const [detail, reports, applicationCount] = await Promise.all([
+      getJobForActor(db, viewer, params.jobId),
+      listReportsForJob(db, viewer, params.jobId),
+      countApplicationsForJob(db, viewer, params.jobId),
+    ]);
     const flags = findPolicyFlags(
       detail.job.title,
       detail.job.description,
@@ -79,7 +83,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
         )
       : [];
     const deadlinePassed = detail.job.deadlineAt.getTime() <= Date.now();
-    return { ...detail, reports, flags, revisionFlags, deadlinePassed };
+    return { ...detail, reports, flags, revisionFlags, deadlinePassed, applicationCount };
   } catch (error) {
     throw serviceErrorResult(error);
   }
@@ -517,7 +521,15 @@ export default function ManageJob({ loaderData, actionData }: Route.ComponentPro
         </div>
 
         <div className="space-y-6">
-          <JobFactsCard job={job} lastConfirmedByName={lastConfirmedByName} metrics={metrics} />
+          <JobFactsCard
+            job={job}
+            lastConfirmedByName={lastConfirmedByName}
+            metrics={metrics}
+            applications={{
+              count: loaderData.applicationCount,
+              href: `/manage/applications?job=${job.id}`,
+            }}
+          />
           <JobTimeline events={events} />
         </div>
       </div>

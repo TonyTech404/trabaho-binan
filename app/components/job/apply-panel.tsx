@@ -1,4 +1,4 @@
-import { ExternalLink, Mail, MapPinned, ShieldAlert } from "lucide-react";
+import { ExternalLink, FileUp, Mail, MapPinned, ShieldAlert } from "lucide-react";
 import { Link } from "react-router";
 import { CopyButton } from "~/components/copy-button";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
@@ -10,6 +10,7 @@ interface ApplyInfo {
   applicationUrl: string | null;
   applicationEmail: string | null;
   walkInInstructions: string | null;
+  acceptsApplications: boolean;
   applicationNotes: string | null;
 }
 
@@ -26,9 +27,12 @@ function hostname(url: string) {
  * the click and re-checks that the vacancy is still open before redirecting.
  */
 export function ApplyPanel({ job, open }: { job: ApplyInfo; open: boolean }) {
-  const methods = [job.applicationUrl, job.applicationEmail, job.walkInInstructions].filter(
-    Boolean,
-  ).length;
+  const methods = [
+    job.acceptsApplications,
+    job.applicationUrl,
+    job.applicationEmail,
+    job.walkInInstructions,
+  ].filter(Boolean).length;
   return (
     <section
       id="how-to-apply"
@@ -53,20 +57,43 @@ export function ApplyPanel({ job, open }: { job: ApplyInfo; open: boolean }) {
               <p className="text-ink-muted">Use any one of these ways to apply.</p>
             ) : null}
 
+            {job.acceptsApplications ? (
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold">Apply here with your résumé</h3>
+                <Link
+                  to={`/apply/${job.publicId}/form`}
+                  className={buttonVariants({ size: "lg", className: "w-full" })}
+                >
+                  <FileUp aria-hidden="true" />
+                  Apply with your résumé
+                </Link>
+                <p className="text-sm text-ink-muted">
+                  Goes to the employer and PESO Biñan. No account needed.
+                </p>
+              </div>
+            ) : null}
+
             {job.applicationUrl ? (
               <div className="space-y-2">
                 <h3 className="text-lg font-semibold">Apply online</h3>
                 <a
                   href={`/apply/${job.publicId}?via=url`}
+                  target="_blank"
                   rel="noopener noreferrer nofollow"
-                  className={buttonVariants({ size: "lg", className: "w-full" })}
+                  className={buttonVariants({
+                    size: "lg",
+                    variant: job.acceptsApplications ? "outline" : "default",
+                    className: "w-full",
+                  })}
                 >
                   Open the application page
                   <ExternalLink aria-hidden="true" />
+                  <span className="sr-only"> (opens in a new tab)</span>
                 </a>
                 <p className="text-sm text-ink-muted">
                   Opens a page on{" "}
-                  <span className="font-semibold text-ink">{hostname(job.applicationUrl)}</span>.
+                  <span className="font-semibold text-ink">{hostname(job.applicationUrl)}</span> in
+                  a new tab.
                 </p>
               </div>
             ) : null}

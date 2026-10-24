@@ -3,6 +3,7 @@ import {
   ClipboardCheck,
   FileClock,
   Flag,
+  Inbox,
   LayoutDashboard,
   ListChecks,
   ScrollText,
@@ -24,11 +25,13 @@ interface NavItem {
   icon: LucideIcon;
   end?: boolean;
   count?: number;
+  /** Screen-reader word after the count; defaults to "waiting". */
+  countLabel?: string;
 }
 
 export function staffNav(
   role: "admin" | "reviewer",
-  counts: { review: number; reports: number },
+  counts: { review: number; reports: number; applications: number },
 ): NavItem[] {
   const items: NavItem[] = [
     { to: "/manage", label: "Overview", icon: LayoutDashboard, end: true },
@@ -36,6 +39,13 @@ export function staffNav(
     { to: "/manage/jobs", label: "All jobs", icon: ListChecks },
     { to: "/manage/employers", label: "Employers", icon: Building2 },
     { to: "/manage/reports", label: "Reports", icon: Flag, count: counts.reports },
+    {
+      to: "/manage/applications",
+      label: "Applications",
+      icon: Inbox,
+      count: counts.applications,
+      countLabel: "new",
+    },
   ];
   if (role === "admin") {
     items.push(
@@ -48,9 +58,16 @@ export function staffNav(
   return items;
 }
 
-export function employerNav(): NavItem[] {
+export function employerNav(counts: { applications: number }): NavItem[] {
   return [
     { to: "/employer", label: "Your jobs", icon: FileClock, end: true },
+    {
+      to: "/employer/applications",
+      label: "Applications",
+      icon: Inbox,
+      count: counts.applications,
+      countLabel: "new",
+    },
     { to: "/employer/profile", label: "Company profile", icon: Building2 },
     { to: "/account", label: "Your account", icon: UserRound },
   ];
@@ -77,7 +94,7 @@ function NavItems({ items, variant }: { items: NavItem[]; variant: "side" | "tab
             {item.count ? (
               <span className="rounded-sm bg-gold px-1.5 text-xs leading-5 font-bold text-ink">
                 {item.count}
-                <span className="sr-only"> waiting</span>
+                <span className="sr-only"> {item.countLabel ?? "waiting"}</span>
               </span>
             ) : null}
           </NavLink>

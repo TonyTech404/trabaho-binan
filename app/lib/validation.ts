@@ -155,6 +155,8 @@ export function jobInputSchema(options: { now?: Date; maxListingDays?: number } 
       applicationUrl: httpsUrl,
       applicationEmail: optionalEmail,
       walkInInstructions: optionalText(1000, "walk-in instructions"),
+      // A checkbox: "on" when ticked, absent when not.
+      acceptsApplications: z.unknown().transform((v) => v === true || v === "on" || v === "true"),
       applicationNotes: optionalText(1000, "application notes"),
       deadline: z
         .unknown()
@@ -190,12 +192,17 @@ export function jobInputSchema(options: { now?: Date; maxListingDays?: number } 
           message: "Choose how often the salary is paid.",
         });
       }
-      if (!v.applicationUrl && !v.applicationEmail && !v.walkInInstructions) {
+      if (
+        !v.acceptsApplications &&
+        !v.applicationUrl &&
+        !v.applicationEmail &&
+        !v.walkInInstructions
+      ) {
         ctx.addIssue({
           code: "custom",
           path: ["applicationMethod"],
           message:
-            "Give at least one way to apply: a link, an email address, or walk-in instructions.",
+            "Give at least one way to apply: applications on Trabaho Biñan, a link, an email address, or walk-in instructions.",
         });
       }
     })
@@ -235,6 +242,28 @@ const organizationProfileFields = organizationFields.pick({
 });
 export const organizationProfileSchema = withEmptyDefaults(organizationProfileFields);
 export type OrganizationProfileInput = z.output<typeof organizationProfileFields>;
+
+/** What an applicant types on the apply form. The résumé file is checked separately. */
+export const applicationInputSchema = withEmptyDefaults(
+  z.object({
+    fullName: requiredText(1, 120, "your full name"),
+    email: optionalEmail,
+    phone: optionalPhone,
+    message: optionalText(1000, "message"),
+    consent: z
+      .unknown()
+      .refine((v) => v === "on", "Tick the box to agree before you send your application."),
+  }),
+).superRefine((v, ctx) => {
+  if (!v.email && !v.phone) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["email"],
+      message: "Give an email address or a mobile number so the employer can contact you.",
+    });
+  }
+});
+export type ApplicationInput = z.output<typeof applicationInputSchema>;
 
 export const reasonSchema = (name = "reason") => requiredText(3, 1000, name);
 

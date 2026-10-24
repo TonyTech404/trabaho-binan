@@ -37,6 +37,7 @@ export const NOTICES: Record<string, string> = {
   profile_saved: "Company profile saved.",
   user_updated: "Account updated.",
   link_revoked: "Link revoked. It can no longer be used.",
+  application_status: "Application status saved.",
 };
 
 export function NoticeBanner() {

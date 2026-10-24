@@ -1,5 +1,6 @@
 import { Badge } from "~/components/ui/badge";
 import {
+  APPLICATION_STATUSES,
   JOB_STATUSES,
   REPORT_STATUSES,
   REVISION_STATUSES,
@@ -69,6 +70,22 @@ export function ReportStatusBadge({ status }: { status: string }) {
   return (
     <Badge variant={tone}>
       {REPORT_STATUSES[status as keyof typeof REPORT_STATUSES] ?? status}
+    </Badge>
+  );
+}
+
+export function ApplicationStatusBadge({ status }: { status: string }) {
+  const tone: Tone =
+    status === "submitted"
+      ? "info"
+      : status === "shortlisted" || status === "interview"
+        ? "warning"
+        : status === "hired"
+          ? "success"
+          : "neutral";
+  return (
+    <Badge variant={tone}>
+      {APPLICATION_STATUSES[status as keyof typeof APPLICATION_STATUSES] ?? status}
     </Badge>
   );
 }

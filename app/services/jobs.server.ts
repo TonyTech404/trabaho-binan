@@ -47,6 +47,7 @@ export const JOB_CONTENT_KEYS = [
   "applicationUrl",
   "applicationEmail",
   "walkInInstructions",
+  "acceptsApplications",
   "applicationNotes",
   "deadlineAt",
   "sourceReference",

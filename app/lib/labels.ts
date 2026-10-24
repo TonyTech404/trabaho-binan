@@ -94,6 +94,17 @@ export const REPORT_STATUSES = {
   dismissed: "Dismissed",
 } as const;
 
+/** Application statuses an employer or reviewer can set. */
+export const APPLICATION_STATUSES = {
+  submitted: "New",
+  reviewed: "Reviewed",
+  shortlisted: "Shortlisted",
+  interview: "Interview",
+  hired: "Hired",
+  not_selected: "Not selected",
+  withdrawn: "Withdrawn",
+} as const;
+
 export const ROLES = {
   admin: "Administrator",
   reviewer: "Reviewer",

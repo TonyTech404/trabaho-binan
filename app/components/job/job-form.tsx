@@ -53,6 +53,8 @@ export function jobToFormValues(
   for (const [k, v] of Object.entries(job)) {
     if (v == null) continue;
     if (typeof v === "string" || typeof v === "number") out[k] = String(v);
+    // Checkboxes: "off" (not just missing) so an unticked box stays unticked when editing.
+    if (typeof v === "boolean") out[k] = v ? "on" : "off";
   }
   out.deadline = manilaDateString(new Date(job.deadlineAt));
   return out;
@@ -77,6 +79,7 @@ const LABELS: Record<string, string> = {
   salaryMax: "Maximum pay",
   salaryPeriod: "Pay period",
   applicationMethod: "How to apply",
+  acceptsApplications: "Applications on Trabaho Biñan",
   applicationUrl: "Application link",
   applicationEmail: "Application email",
   walkInInstructions: "Walk-in instructions",
@@ -341,6 +344,22 @@ export function JobForm({
             {errors.applicationMethod}
           </p>
         ) : null}
+        <div className="rounded-md border border-line bg-surface px-3 py-3 has-checked:border-pine has-checked:bg-pine-tint">
+          <label className="flex cursor-pointer items-start gap-3 font-semibold">
+            <input
+              type="checkbox"
+              name="acceptsApplications"
+              defaultChecked={v("acceptsApplications", "on") === "on"}
+              aria-describedby="acceptsApplications-hint"
+              className="mt-1 size-5 shrink-0 accent-pine"
+            />
+            <span>Accept applications on Trabaho Biñan</span>
+          </label>
+          <p id="acceptsApplications-hint" className="mt-1 pl-8 text-sm text-ink-muted">
+            Jobseekers can send their résumé here. You and PESO Biñan see the applications in the
+            dashboard. They are deleted after six months.
+          </p>
+        </div>
         <Field
           name="applicationUrl"
           label="Application link"
