@@ -370,6 +370,7 @@ export async function listOpenLinks(db: Database, actor: Actor, now = new Date()
       role: accountLinks.role,
       expiresAt: accountLinks.expiresAt,
       createdAt: accountLinks.createdAt,
+      organizationId: accountLinks.organizationId,
       organizationName: organizations.name,
     })
     .from(accountLinks)

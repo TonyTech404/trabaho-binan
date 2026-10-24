@@ -1,4 +1,4 @@
-import { type RouteConfig, index, layout, route } from "@react-router/dev/routes";
+import { type RouteConfig, index, layout, prefix, route } from "@react-router/dev/routes";
 
 export default [
   // Public site
@@ -15,6 +15,27 @@ export default [
     route("reset-password/:token", "routes/reset-password.tsx"),
   ]),
 
+  // Reviewers and administrators
+  ...prefix("manage", [
+    layout("routes/manage/layout.tsx", [
+      index("routes/manage/index.tsx"),
+      route("review", "routes/manage/review.tsx"),
+      route("jobs", "routes/manage/jobs.tsx"),
+      route("jobs/new", "routes/manage/job-new.tsx"),
+      route("jobs/:jobId", "routes/manage/job.tsx"),
+      route("jobs/:jobId/edit", "routes/manage/job-edit.tsx"),
+      route("employers", "routes/manage/employers.tsx"),
+      route("employers/new", "routes/manage/employer-new.tsx"),
+      route("employers/:organizationId", "routes/manage/employer.tsx"),
+      route("reports", "routes/manage/reports.tsx"),
+      route("users", "routes/manage/users.tsx"),
+      route("audit", "routes/manage/audit.tsx"),
+      route("settings", "routes/manage/settings.tsx"),
+    ]),
+    route("export.csv", "routes/manage/export.ts"),
+  ]),
+
+  route("account", "routes/account.tsx"),
   route("apply/:publicId", "routes/apply.ts"),
   route("api/job-view/:publicId", "routes/api.job-view.ts"),
   route("sitemap.xml", "routes/sitemap.ts"),
