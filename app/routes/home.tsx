@@ -87,7 +87,7 @@ function ActiveFilters({
         <li key={key}>
           <Link
             to={without(key)}
-            className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-lake/30 bg-lake-tint px-2.5 text-sm font-semibold text-lake-strong no-underline hover:border-lake"
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-pine/30 bg-pine-tint px-2.5 text-sm font-semibold text-pine-strong no-underline hover:border-pine"
           >
             {FILTER_LABELS[key](String(filters[key]))}
             <X aria-hidden="true" className="size-4" />
@@ -139,7 +139,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                   name="q"
                   type="search"
                   defaultValue={filters.q}
-                  placeholder="Job title or company"
+                  placeholder="Job or company"
                   autoComplete="off"
                   enterKeyHint="search"
                   className="h-12 pl-10 text-lg"

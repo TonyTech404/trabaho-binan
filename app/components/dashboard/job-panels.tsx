@@ -70,7 +70,7 @@ export function JobTimeline({ events }: { events: TimelineEvent[] }) {
       className="rounded-lg border border-line bg-surface p-4"
     >
       <h2 id="timeline-heading" className="flex items-center gap-2 text-xl font-bold">
-        <History aria-hidden="true" className="size-5 text-lake" />
+        <History aria-hidden="true" className="size-5 text-pine" />
         History
       </h2>
       {events.length === 0 ? (
@@ -81,7 +81,7 @@ export function JobTimeline({ events }: { events: TimelineEvent[] }) {
             <li key={e.id} className="relative border-l-2 border-line py-2 pl-4 last:pb-0">
               <span
                 aria-hidden="true"
-                className="absolute top-3.5 -left-[5px] size-2 rounded-full bg-lake"
+                className="absolute top-3.5 -left-[5px] size-2 rounded-full bg-pine"
               />
               <p className="font-semibold">{JOB_EVENT_LABELS[e.type] ?? e.type}</p>
               <p className="text-sm text-ink-muted">
@@ -181,7 +181,7 @@ export function RevisionDiff({ live, proposed }: { live: ContentLike; proposed: 
                 {show(live[f.key], f.format, live)}
               </p>
             </div>
-            <div className="bg-marigold-tint/60 px-3 py-2">
+            <div className="bg-gold-tint/60 px-3 py-2">
               <p className="text-xs text-ink-muted">Proposed</p>
               <p className="font-semibold [overflow-wrap:anywhere] whitespace-pre-line">
                 {show(proposed[f.key], f.format, proposed)}

@@ -16,7 +16,7 @@ import { useEffect } from "react";
 import { data, Link, redirect } from "react-router";
 import { CopyButton } from "~/components/copy-button";
 import { ApplyPanel } from "~/components/job/apply-panel";
-import { DeadlineStub } from "~/components/job/deadline-stub";
+import { DeadlineNote, isClosingSoon } from "~/components/job/deadline";
 import { formatLocation, VerifiedBadge } from "~/components/job/job-meta";
 import { JobStatusNotice } from "~/components/job/job-status-notice";
 import { JobText } from "~/components/job/job-text";
@@ -156,13 +156,15 @@ function FactRow({
   term: string;
   children: React.ReactNode;
 }) {
+  // dt and dd must be direct children of the group div for a valid <dl>, so
+  // the icon sits inside the dt and is positioned against the group.
   return (
-    <div className="flex gap-3 py-3">
-      <Icon aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-lake" />
-      <div className="min-w-0">
-        <dt className="text-sm text-ink-muted">{term}</dt>
-        <dd className="font-semibold [overflow-wrap:anywhere] text-ink">{children}</dd>
-      </div>
+    <div className="relative min-w-0 py-3 pl-8">
+      <dt className="text-sm text-ink-muted">
+        <Icon aria-hidden="true" className="absolute top-3.5 left-0 size-5 text-pine" />
+        {term}
+      </dt>
+      <dd className="font-semibold [overflow-wrap:anywhere] text-ink">{children}</dd>
     </div>
   );
 }
@@ -207,7 +209,7 @@ export default function JobPage({ loaderData }: Route.ComponentProps) {
               closedAt={job.closedAt}
               deadlineAt={job.deadlineAt}
             />
-            <h1 className="text-3xl leading-tight font-bold [overflow-wrap:anywhere] sm:text-4xl">
+            <h1 className="text-[1.75rem] leading-tight font-bold [overflow-wrap:anywhere] sm:text-3xl lg:text-4xl">
               {job.title}
             </h1>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-lg">
@@ -230,19 +232,6 @@ export default function JobPage({ loaderData }: Route.ComponentProps) {
           </header>
 
           <section aria-label="Key facts" className="rounded-lg border border-line bg-surface">
-            <div className="flex items-center gap-4 border-b border-line p-4">
-              <DeadlineStub deadlineAt={job.deadlineAt} size="detail" />
-              <div>
-                <p className="text-sm text-ink-muted">{open ? "Apply by" : "Deadline"}</p>
-                <p className="text-lg font-semibold">{formatLongDate(job.deadlineAt)}</p>
-                <p className="mt-1 text-sm text-ink-muted">
-                  Posted {describeAge(job.firstPublishedAt)}
-                  {job.lastConfirmedAt ? (
-                    <>; confirmed open {describeAge(job.lastConfirmedAt)}</>
-                  ) : null}
-                </p>
-              </div>
-            </div>
             <dl className="grid divide-y divide-line px-4 sm:grid-cols-2 sm:gap-x-6 sm:divide-y-0">
               <FactRow icon={MapPin} term="Where you will work">
                 {formatLocation(job)}
@@ -273,6 +262,22 @@ export default function JobPage({ loaderData }: Route.ComponentProps) {
                 {label(EXPERIENCE_LEVELS, job.experienceLevel)}
               </FactRow>
             </dl>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-b-lg border-t border-line bg-wash px-4 py-3 text-sm text-ink-muted">
+              <p className="inline-flex items-center gap-1.5 text-base text-ink">
+                <CalendarCheck aria-hidden="true" className="size-4.5 shrink-0 text-pine" />
+                {open ? "Apply by" : "Closing date"}{" "}
+                <span className="font-semibold">{formatLongDate(job.deadlineAt)}</span>
+              </p>
+              {open && isClosingSoon(job.deadlineAt) ? (
+                <DeadlineNote deadlineAt={job.deadlineAt} />
+              ) : null}
+              <p className="basis-full">
+                Posted {describeAge(job.firstPublishedAt)}
+                {job.lastConfirmedAt ? (
+                  <>; confirmed open {describeAge(job.lastConfirmedAt)}</>
+                ) : null}
+              </p>
+            </div>
           </section>
 
           <section aria-labelledby="about-heading" className="space-y-3">
@@ -346,7 +351,7 @@ export default function JobPage({ loaderData }: Route.ComponentProps) {
 
           <section aria-labelledby="share-heading" className="space-y-3">
             <h2 id="share-heading" className="flex items-center gap-2 text-xl font-bold">
-              <Share2 aria-hidden="true" className="size-5 text-lake" />
+              <Share2 aria-hidden="true" className="size-5 text-pine" />
               Share this job
             </h2>
             <div className="flex flex-wrap items-center gap-2">
@@ -384,15 +389,15 @@ export default function JobPage({ loaderData }: Route.ComponentProps) {
       </div>
 
       {open ? (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 px-4 py-3 shadow-[0_-4px_16px_rgba(27,42,51,0.08)] backdrop-blur lg:hidden">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 px-4 py-3 shadow-[0_-4px_16px_rgba(26,38,32,0.08)] backdrop-blur lg:hidden">
           <div className="mx-auto flex max-w-xl items-center gap-3">
             <p className="flex-1 text-sm leading-tight">
-              <CalendarCheck aria-hidden="true" className="mr-1 inline size-4 text-lake" />
+              <CalendarCheck aria-hidden="true" className="mr-1 inline size-4 text-pine" />
               Apply by <span className="font-semibold">{formatDate(job.deadlineAt)}</span>
             </p>
             <a
               href="#how-to-apply"
-              className="inline-flex h-11 items-center rounded-md bg-lake px-5 font-semibold text-white no-underline hover:bg-lake-strong"
+              className="inline-flex h-11 items-center rounded-md bg-pine px-5 font-semibold text-white no-underline hover:bg-pine-strong"
             >
               How to apply
             </a>

@@ -52,7 +52,7 @@ export function JobTable({
               </Link>
               <div className="mt-0.5 flex flex-wrap gap-2 text-sm">
                 {job.hasOpenRevision ? (
-                  <span className="inline-flex items-center gap-1 text-lake-strong">
+                  <span className="inline-flex items-center gap-1 text-pine-strong">
                     <GitPullRequestArrow aria-hidden="true" className="size-4" />
                     Changes pending
                   </span>

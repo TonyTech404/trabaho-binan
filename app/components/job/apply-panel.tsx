@@ -33,9 +33,9 @@ export function ApplyPanel({ job, open }: { job: ApplyInfo; open: boolean }) {
     <section
       id="how-to-apply"
       aria-labelledby="apply-heading"
-      className="scroll-mt-4 overflow-hidden rounded-lg border-2 border-lake bg-surface"
+      className="scroll-mt-4 overflow-hidden rounded-lg border-2 border-pine bg-surface"
     >
-      <div className="bg-lake px-4 py-3 text-white">
+      <div className="bg-pine px-4 py-3 text-white">
         <h2 id="apply-heading" className="text-2xl font-bold">
           How to apply
         </h2>
@@ -75,7 +75,7 @@ export function ApplyPanel({ job, open }: { job: ApplyInfo; open: boolean }) {
             {job.applicationEmail ? (
               <div className="space-y-2">
                 <h3 className="flex items-center gap-2 text-lg font-semibold">
-                  <Mail aria-hidden="true" className="size-5 text-lake" />
+                  <Mail aria-hidden="true" className="size-5 text-pine" />
                   Email your application
                 </h3>
                 <p className="flex flex-wrap items-center gap-2">
@@ -93,7 +93,7 @@ export function ApplyPanel({ job, open }: { job: ApplyInfo; open: boolean }) {
             {job.walkInInstructions ? (
               <div className="space-y-2">
                 <h3 className="flex items-center gap-2 text-lg font-semibold">
-                  <MapPinned aria-hidden="true" className="size-5 text-lake" />
+                  <MapPinned aria-hidden="true" className="size-5 text-pine" />
                   Apply in person
                 </h3>
                 <JobText text={job.walkInInstructions} className="prose-job" />

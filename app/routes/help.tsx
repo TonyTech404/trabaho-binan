@@ -38,8 +38,8 @@ export default function Help({ loaderData }: Route.ComponentProps) {
           and experience filters show jobs you can apply for with what you already have.
         </p>
         <p>
-          Every listing shows a closing date on the left. A yellow tab means the job closes within
-          three days. Only open vacancies appear in search results.
+          Every listing shows its closing date. A yellow “Closes in …” label means the job closes
+          within three days. Only open vacancies appear in search results.
         </p>
       </section>
 

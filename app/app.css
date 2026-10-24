@@ -1,38 +1,44 @@
 @import "tailwindcss" source(".");
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/atkinson-hyperlegible-next";
-@import "@fontsource/barlow-semi-condensed/600.css";
-@import "@fontsource/barlow-semi-condensed/700.css";
+/* Per-weight files carry unicode-range subsets; browsers fetch only latin (ñ) and latin-ext (₱). */
+@import "@fontsource/source-sans-3/400.css";
+@import "@fontsource/source-sans-3/600.css";
+@import "@fontsource/source-sans-3/700.css";
 
 /*
  * Trabaho Biñan design tokens. See docs/design-system.md.
+ * Proposed interface colours inspired by the Biñan city seal (deep green, gold
+ * accents, white paper). They are not official brand specifications.
  * Light theme only for the pilot: one well-tested palette on low-end screens.
  */
 :root {
-  --ink: #1b2a33;
-  --ink-muted: #46555e;
-  --ink-subtle: #5f6e76;
-  --canvas: #f2f4f3;
+  --ink: #1a2620;
+  --ink-muted: #48554d;
+  --ink-subtle: #5b6860;
+  --canvas: #ffffff;
+  --wash: #f5f7f4;
   --surface: #ffffff;
-  --line: #d5dcdd;
-  --line-strong: #7d8b91;
+  --line: #d6ddd7;
+  --line-strong: #7b877f;
 
-  --lake: #0f5e6e;
-  --lake-strong: #0b4855;
-  --lake-tint: #e3eff1;
+  /* Actions and links. 7.7:1 on white; white text on it is AAA. */
+  --pine: #1e5f24;
+  --pine-strong: #144419;
+  --pine-tint: #eaf3e7;
 
-  --marigold: #f2b705;
-  --marigold-tint: #fff4cc;
-  --marigold-ink: #6b4e00;
+  /* Gold is a fill only (1.8:1 on white): never use it for text. */
+  --gold: #e8b923;
+  --gold-tint: #fdf3cf;
+  --gold-ink: #5c4300;
 
-  --open: #2e7d4f;
-  --open-tint: #e5f2ea;
+  --open: var(--pine);
+  --open-tint: var(--pine-tint);
 
   --danger: #b42318;
   --danger-tint: #fdecea;
 
-  --focus: #0b3f4a;
+  --focus: #0f3d1c;
 
   /* shadcn/ui semantic tokens mapped onto the palette */
   --background: var(--canvas);
@@ -41,14 +47,14 @@
   --card-foreground: var(--ink);
   --popover: var(--surface);
   --popover-foreground: var(--ink);
-  --primary: var(--lake);
+  --primary: var(--pine);
   --primary-foreground: #ffffff;
-  --secondary: var(--lake-tint);
-  --secondary-foreground: var(--lake-strong);
-  --muted: #e8eceb;
+  --secondary: var(--pine-tint);
+  --secondary-foreground: var(--pine-strong);
+  --muted: #edf1ec;
   --muted-foreground: var(--ink-muted);
-  --accent: var(--lake-tint);
-  --accent-foreground: var(--lake-strong);
+  --accent: var(--pine-tint);
+  --accent-foreground: var(--pine-strong);
   --destructive: var(--danger);
   --border: var(--line);
   --input: var(--line-strong);
@@ -58,40 +64,43 @@
 
 @theme inline {
   --font-sans:
-    "Atkinson Hyperlegible Next Variable", "Atkinson Hyperlegible Next", system-ui, -apple-system,
-    "Segoe UI", Roboto, sans-serif;
-  --font-heading: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+    "Source Sans 3", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+  /* One family throughout; headings differ by weight and size, not width. */
+  --font-heading: var(--font-sans);
 
+  /* Source Sans 3 runs small; a 17px base keeps body text and inputs comfortable. */
   --text-xs: 0.8125rem;
-  --text-xs--line-height: 1.4;
-  --text-sm: 0.875rem;
+  --text-xs--line-height: 1.35;
+  --text-sm: 0.9375rem;
   --text-sm--line-height: 1.45;
-  --text-base: 1rem;
-  --text-base--line-height: 1.6;
-  --text-lg: 1.125rem;
-  --text-lg--line-height: 1.5;
-  --text-xl: 1.3125rem;
+  --text-base: 1.0625rem;
+  --text-base--line-height: 1.55;
+  --text-lg: 1.1875rem;
+  --text-lg--line-height: 1.45;
+  --text-xl: 1.375rem;
   --text-xl--line-height: 1.3;
   --text-2xl: 1.625rem;
-  --text-2xl--line-height: 1.2;
+  --text-2xl--line-height: 1.22;
   --text-3xl: 2rem;
-  --text-3xl--line-height: 1.12;
-  --text-4xl: 2.5rem;
-  --text-4xl--line-height: 1.08;
+  --text-3xl--line-height: 1.15;
+  --text-4xl: 2.375rem;
+  --text-4xl--line-height: 1.1;
 
   --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
   --color-ink-subtle: var(--ink-subtle);
   --color-canvas: var(--canvas);
+  --color-wash: var(--wash);
   --color-surface: var(--surface);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
-  --color-lake: var(--lake);
-  --color-lake-strong: var(--lake-strong);
-  --color-lake-tint: var(--lake-tint);
-  --color-marigold: var(--marigold);
-  --color-marigold-tint: var(--marigold-tint);
-  --color-marigold-ink: var(--marigold-ink);
+  --color-pine: var(--pine);
+  --color-pine-strong: var(--pine-strong);
+  --color-pine-tint: var(--pine-tint);
+  --color-gold: var(--gold);
+  --color-gold-tint: var(--gold-tint);
+  --color-gold-ink: var(--gold-ink);
   --color-open: var(--open);
   --color-open-tint: var(--open-tint);
   --color-danger: var(--danger);
@@ -119,8 +128,8 @@
 
   --radius-sm: 0.25rem;
   --radius-md: 0.375rem;
-  --radius-lg: 0.625rem;
-  --radius-xl: 0.875rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
 }
 
 @layer base {
@@ -132,14 +141,20 @@
   body {
     @apply bg-background font-sans text-foreground antialiased;
     text-rendering: optimizeLegibility;
+    /* Plain lining figures: no slashed zero in salaries and dates. */
+    font-variant-numeric: lining-nums;
   }
 
   h1,
   h2,
   h3,
   h4 {
-    @apply font-heading text-balance;
-    letter-spacing: -0.005em;
+    @apply text-balance;
+  }
+
+  h1,
+  h2 {
+    letter-spacing: -0.012em;
   }
 
   /* One strong, consistent focus indicator for every interactive element. */
@@ -153,7 +168,7 @@
   }
 
   ::selection {
-    background: var(--marigold-tint);
+    background: var(--gold-tint);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -183,6 +198,6 @@
   }
 
   .link {
-    @apply font-medium text-lake underline decoration-1 hover:text-lake-strong hover:decoration-2;
+    @apply font-semibold text-pine underline decoration-1 hover:text-pine-strong hover:decoration-2;
   }
 }

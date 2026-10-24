@@ -249,7 +249,7 @@ export default function EmployerJob({ loaderData, actionData }: Route.ComponentP
           {openRevision ? (
             <section
               aria-labelledby="rev-heading"
-              className="rounded-lg border-2 border-lake/40 bg-surface p-4"
+              className="rounded-lg border-2 border-pine/40 bg-surface p-4"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 id="rev-heading" className="text-xl font-bold">

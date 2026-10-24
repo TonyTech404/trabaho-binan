@@ -1,4 +1,12 @@
-import { CalendarClock, ClipboardCheck, Flag, Plus, ShieldQuestion, Timer } from "lucide-react";
+import {
+  CalendarClock,
+  ChevronRight,
+  ClipboardCheck,
+  Flag,
+  Plus,
+  ShieldQuestion,
+  Timer,
+} from "lucide-react";
 import { Link, useSearchParams } from "react-router";
 import { PageHeader } from "~/components/dashboard/shell";
 import { NoticeBanner } from "~/components/dashboard/notice";
@@ -40,7 +48,7 @@ function TaskRow({
       >
         <Icon
           aria-hidden="true"
-          className={count > 0 ? "size-5 text-lake" : "size-5 text-ink-subtle"}
+          className={count > 0 ? "size-5 text-pine" : "size-5 text-ink-subtle"}
         />
         <span className="flex-1">
           {count > 0 ? (
@@ -51,7 +59,7 @@ function TaskRow({
             <span className="text-ink-muted">{empty}</span>
           )}
         </span>
-        {count > 0 ? <span className="text-sm font-semibold text-lake">Open</span> : null}
+        {count > 0 ? <ChevronRight aria-hidden="true" className="size-5 text-pine" /> : null}
       </Link>
     </li>
   );

@@ -7,9 +7,9 @@ const alertVariants = cva(
   {
     variants: {
       variant: {
-        info: "border-lake bg-lake-tint text-ink *:[svg]:text-lake",
+        info: "border-pine bg-pine-tint text-ink *:[svg]:text-pine",
         success: "border-open bg-open-tint text-ink *:[svg]:text-open",
-        warning: "border-marigold bg-marigold-tint text-ink *:[svg]:text-marigold-ink",
+        warning: "border-gold bg-gold-tint text-ink *:[svg]:text-gold-ink",
         danger: "border-danger bg-danger-tint text-ink *:[svg]:text-danger",
       },
     },

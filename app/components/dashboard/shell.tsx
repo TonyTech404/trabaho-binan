@@ -68,14 +68,14 @@ function NavItems({ items, variant }: { items: NavItem[]; variant: "side" | "tab
               cn(
                 "flex min-h-11 items-center gap-2.5 rounded-md px-3 font-semibold whitespace-nowrap text-ink no-underline hover:bg-muted",
                 variant === "tabs" && "text-[0.9375rem]",
-                isActive && "bg-lake-tint text-lake-strong hover:bg-lake-tint",
+                isActive && "bg-pine-tint text-pine-strong hover:bg-pine-tint",
               )
             }
           >
             <item.icon aria-hidden="true" className="size-4.5 shrink-0" />
             <span className="flex-1">{item.label}</span>
             {item.count ? (
-              <span className="rounded-sm bg-marigold px-1.5 text-xs leading-5 font-bold text-ink">
+              <span className="rounded-sm bg-gold px-1.5 text-xs leading-5 font-bold text-ink">
                 {item.count}
                 <span className="sr-only"> waiting</span>
               </span>
@@ -109,7 +109,7 @@ export function DashboardShell({
       <SkipLink />
       <NavigationProgress />
       <EnvironmentBanner appEnv={appEnv} />
-      <header className="border-b border-line bg-surface">
+      <header className="border-b-2 border-gold bg-surface">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-1.5 sm:px-6">
           <div className="flex items-center gap-3">
             <Wordmark to="/" />
@@ -127,7 +127,7 @@ export function DashboardShell({
         </div>
         <nav
           aria-label="Dashboard"
-          className="overflow-x-auto border-t border-line px-2 py-1 lg:hidden"
+          className="relative overflow-x-auto border-t border-line px-2 py-1 lg:hidden"
         >
           <NavItems items={items} variant="tabs" />
         </nav>

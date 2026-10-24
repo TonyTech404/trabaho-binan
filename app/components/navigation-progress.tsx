@@ -7,7 +7,7 @@ export function NavigationProgress() {
   return (
     <div
       aria-hidden="true"
-      className={`pointer-events-none fixed inset-x-0 top-0 z-50 h-1 origin-left bg-lake transition-[transform,opacity] duration-500 ${active ? "scale-x-75 opacity-100" : "scale-x-0 opacity-0"}`}
+      className={`pointer-events-none fixed inset-x-0 top-0 z-50 h-1 origin-left bg-pine transition-[transform,opacity] duration-500 ${active ? "scale-x-75 opacity-100" : "scale-x-0 opacity-0"}`}
     />
   );
 }

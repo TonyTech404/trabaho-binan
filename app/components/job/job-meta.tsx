@@ -1,13 +1,6 @@
-import {
-  BadgeCheck,
-  Banknote,
-  BriefcaseBusiness,
-  GraduationCap,
-  MapPin,
-  type LucideIcon,
-} from "lucide-react";
+import { BadgeCheck, Banknote, BriefcaseBusiness, MapPin, type LucideIcon } from "lucide-react";
 import { Badge } from "~/components/ui/badge";
-import { EDUCATION_LEVELS, EMPLOYMENT_TYPES, formatSalary, label, WORK_SETUPS } from "~/lib/labels";
+import { EMPLOYMENT_TYPES, formatSalary, label, WORK_SETUPS } from "~/lib/labels";
 import { cn } from "~/lib/utils";
 
 export function formatLocation(job: {
@@ -40,7 +33,10 @@ export function Fact({
         className,
       )}
     >
-      <Icon aria-hidden="true" className="mt-[0.2em] size-4 shrink-0 text-ink-subtle" />
+      {/* A 1lh box centres the icon on the first line at any font size. */}
+      <span aria-hidden="true" className="flex h-lh shrink-0 items-center">
+        <Icon className="size-4 text-ink-subtle" />
+      </span>
       <span className="min-w-0">{children}</span>
     </span>
   );
@@ -55,22 +51,18 @@ export interface JobSummary {
   salaryCurrency: string;
   salaryPeriod: string | null;
   employmentType: string;
-  educationLevel: string;
 }
 
-/** Location, pay, job type and education: the facts people filter on. */
+/** Where, pay and job type: the facts people decide on, in that order. */
 export function JobFactsInline({ job }: { job: JobSummary }) {
   const salary = formatSalary(job);
   return (
-    <div className="mt-2 flex flex-col gap-1 text-[0.9375rem] text-ink-muted">
+    <div className="mt-2.5 flex flex-col gap-1 text-[1rem] text-ink sm:flex-row sm:flex-wrap sm:gap-x-5">
       <Fact icon={MapPin}>{formatLocation(job)}</Fact>
-      <Fact icon={Banknote} muted={!salary}>
+      <Fact icon={Banknote} muted={!salary} className={salary ? "font-semibold" : undefined}>
         {salary ?? "Pay not disclosed"}
       </Fact>
-      <div className="flex flex-wrap gap-x-4 gap-y-1">
-        <Fact icon={BriefcaseBusiness}>{label(EMPLOYMENT_TYPES, job.employmentType)}</Fact>
-        <Fact icon={GraduationCap}>{label(EDUCATION_LEVELS, job.educationLevel)}</Fact>
-      </div>
+      <Fact icon={BriefcaseBusiness}>{label(EMPLOYMENT_TYPES, job.employmentType)}</Fact>
     </div>
   );
 }

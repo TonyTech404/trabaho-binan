@@ -84,7 +84,7 @@ export default function ReviewQueue({ loaderData }: Route.ComponentProps) {
               </p>
               {item.flags.length ? (
                 <p className="mt-2 flex flex-wrap items-center gap-2 text-sm">
-                  <TriangleAlert aria-hidden="true" className="size-4 text-marigold-ink" />
+                  <TriangleAlert aria-hidden="true" className="size-4 text-gold-ink" />
                   {item.flags.map((f) => (
                     <Badge key={f} variant="warning">
                       {f}

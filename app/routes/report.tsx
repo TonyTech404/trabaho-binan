@@ -100,13 +100,13 @@ export default function ReportListing({ loaderData, actionData }: Route.Componen
               {Object.entries(REPORT_REASONS).map(([value, text]) => (
                 <label
                   key={value}
-                  className="flex min-h-12 cursor-pointer items-center gap-3 rounded-md border border-line bg-surface px-3 py-2 has-checked:border-lake has-checked:bg-lake-tint"
+                  className="flex min-h-12 cursor-pointer items-center gap-3 rounded-md border border-line bg-surface px-3 py-2 has-checked:border-pine has-checked:bg-pine-tint"
                 >
                   <input
                     type="radio"
                     name="reason"
                     value={value}
-                    className="size-5 accent-lake"
+                    className="size-5 accent-pine"
                     required
                   />
                   <span>{text}</span>

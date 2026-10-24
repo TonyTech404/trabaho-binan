@@ -12,7 +12,7 @@ export interface ShellViewer {
 export function EnvironmentBanner({ appEnv }: { appEnv: string }) {
   if (appEnv === "production") return null;
   return (
-    <div className="bg-marigold px-4 py-1.5 text-center text-sm font-semibold text-ink">
+    <div className="bg-gold px-4 py-1.5 text-center text-sm font-semibold text-ink">
       {appEnv === "staging" ? "Staging site" : "Development site"}: sample listings only. These are
       not real vacancies.
     </div>
@@ -33,14 +33,21 @@ export function SkipLink() {
 const navLink = ({ isActive }: { isActive: boolean }) =>
   cn(
     "inline-flex min-h-11 items-center gap-1.5 rounded-md px-2 text-[0.9375rem] font-semibold whitespace-nowrap text-ink no-underline hover:bg-muted sm:px-3",
-    isActive && "text-lake",
+    isActive && "text-pine",
   );
 
-export function SiteHeader({ viewer }: { viewer: ShellViewer | null }) {
+export function SiteHeader({
+  viewer,
+  brand,
+}: {
+  viewer: ShellViewer | null;
+  /** Replaces the wordmark; used to preview logo concepts in the real header. */
+  brand?: React.ReactNode;
+}) {
   return (
-    <header className="border-b border-line bg-surface">
+    <header className="border-b-2 border-gold bg-surface">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-1.5 sm:px-6">
-        <Wordmark />
+        {brand ?? <Wordmark />}
         <nav aria-label="Site" className="flex items-center">
           <NavLink to="/help" className={navLink}>
             <CircleHelp aria-hidden="true" className="hidden size-4.5 min-[400px]:block" />
@@ -70,7 +77,7 @@ export function SiteFooter() {
     <footer className="mt-16 border-t border-line bg-surface">
       <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 text-sm text-ink-muted sm:grid-cols-[1fr_auto] sm:px-6">
         <div className="max-w-xl space-y-2">
-          <p className="font-heading text-lg font-bold text-ink">Trabaho Biñan</p>
+          <p className="text-lg font-bold text-ink">Trabaho Biñan</p>
           <p>
             A pro bono community job board for Biñan, Laguna. Listings are reviewed before they are
             published. Trabaho Biñan is not an official website of the City Government of Biñan or

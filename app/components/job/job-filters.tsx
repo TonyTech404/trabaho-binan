@@ -99,10 +99,10 @@ export function JobFilters({
       className="group rounded-lg border border-line bg-surface lg:border-0 lg:bg-transparent"
     >
       <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 rounded-lg px-4 font-semibold lg:hidden [&::-webkit-details-marker]:hidden">
-        <SlidersHorizontal aria-hidden="true" className="size-5 text-lake" />
+        <SlidersHorizontal aria-hidden="true" className="size-5 text-pine" />
         Filters
         {count > 0 ? (
-          <span className="rounded-sm bg-lake px-1.5 text-sm text-white">{count}</span>
+          <span className="rounded-sm bg-pine px-1.5 text-sm text-white">{count}</span>
         ) : null}
         <span className="ml-auto text-sm font-normal text-ink-muted group-open:hidden">Show</span>
         <span className="ml-auto hidden text-sm font-normal text-ink-muted group-open:inline">

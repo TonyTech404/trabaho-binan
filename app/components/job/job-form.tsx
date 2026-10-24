@@ -99,8 +99,8 @@ function Section({
 }) {
   return (
     <fieldset className="space-y-5 rounded-lg border border-line bg-surface p-4 sm:p-5">
-      <legend className="float-left mb-1 w-full">
-        <span className="font-heading text-xl font-bold">{title}</span>
+      <legend className="float-left mb-4 w-full">
+        <span className="text-xl font-bold">{title}</span>
         {description ? (
           <span className="mt-1 block text-[0.9375rem] text-ink-muted">{description}</span>
         ) : null}

@@ -9,9 +9,10 @@ const badgeVariants = cva(
     variants: {
       variant: {
         neutral: "border-line bg-muted text-ink-muted",
-        info: "border-lake/25 bg-lake-tint text-lake-strong",
-        success: "border-open/25 bg-open-tint text-open",
-        warning: "border-marigold/60 bg-marigold-tint text-marigold-ink",
+        // Info is outlined so "pending" never reads as the filled green of "published".
+        info: "border-pine/45 bg-surface text-pine-strong",
+        success: "border-pine/25 bg-pine-tint text-pine-strong",
+        warning: "border-gold bg-gold-tint text-gold-ink",
         danger: "border-danger/25 bg-danger-tint text-danger",
       },
     },
