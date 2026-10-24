@@ -1,0 +1,9 @@
+build
+.react-router
+node_modules
+drizzle/meta
+package-lock.json
+worker-configuration.d.ts
+playwright-report
+test-results
+docs/project-plan.md
