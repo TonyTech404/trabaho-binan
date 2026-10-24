@@ -10,6 +10,9 @@ export default [
     route("help", "routes/help.tsx"),
     route("privacy", "routes/privacy.tsx"),
     route("login", "routes/login.tsx"),
+    route("forgot-password", "routes/forgot-password.tsx"),
+    route("invite/:token", "routes/invite.tsx"),
+    route("reset-password/:token", "routes/reset-password.tsx"),
   ]),
 
   route("apply/:publicId", "routes/apply.ts"),
