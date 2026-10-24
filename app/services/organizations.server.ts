@@ -20,6 +20,36 @@ import {
   type Actor,
 } from "./common.server";
 
+const ORGANIZATION_FIELDS = [
+  "name",
+  "type",
+  "description",
+  "website",
+  "publicEmail",
+  "publicPhone",
+  "officeCity",
+  "officeBarangay",
+  "officeAddress",
+  "internalNotes",
+] as const satisfies readonly (keyof OrganizationInput)[];
+
+const PROFILE_FIELDS = [
+  "description",
+  "website",
+  "publicEmail",
+  "publicPhone",
+  "officeCity",
+  "officeBarangay",
+  "officeAddress",
+] as const satisfies readonly (keyof OrganizationProfileInput)[];
+
+/** Copy only the named fields: verification and identity never come from form input. */
+function pickFields<K extends string>(input: Record<string, unknown>, keys: readonly K[]) {
+  const out = {} as Record<K, string | null>;
+  for (const key of keys) out[key] = (input[key] as string | null | undefined) ?? null;
+  return out;
+}
+
 async function uniqueSlug(db: Database, name: string) {
   const base = slugify(name, 50);
   const [taken] = await db
@@ -36,7 +66,11 @@ export async function createOrganization(db: Database, actor: Actor, input: Orga
   return db.transaction(async (tx) => {
     const [org] = await tx
       .insert(organizations)
-      .values({ ...input, slug, createdById: actor.id })
+      .values({
+        ...(pickFields(input, ORGANIZATION_FIELDS) as OrganizationInput),
+        slug,
+        createdById: actor.id,
+      })
       .returning();
     await recordAudit(tx, actor, {
       action: "organization.create",
@@ -63,14 +97,13 @@ export async function updateOrganization(
       .for("update")
       .limit(1);
     if (!before) throw new NotFoundError("Organization not found.");
+    const values = pickFields(input, ORGANIZATION_FIELDS) as OrganizationInput;
     const [org] = await tx
       .update(organizations)
-      .set(input)
+      .set(values)
       .where(eq(organizations.id, organizationId))
       .returning();
-    const changed = (Object.keys(input) as (keyof OrganizationInput)[]).filter(
-      (k) => (before[k] ?? null) !== (input[k] ?? null),
-    );
+    const changed = ORGANIZATION_FIELDS.filter((k) => (before[k] ?? null) !== (values[k] ?? null));
     await recordAudit(tx, actor, {
       action: "organization.edit",
       entityType: "organization",
@@ -93,7 +126,7 @@ export async function updateOwnOrganizationProfile(
   return db.transaction(async (tx) => {
     const [org] = await tx
       .update(organizations)
-      .set(input)
+      .set(pickFields(input, PROFILE_FIELDS))
       .where(eq(organizations.id, organizationId))
       .returning();
     if (!org) throw new NotFoundError("Organization not found.");
@@ -102,7 +135,7 @@ export async function updateOwnOrganizationProfile(
       entityType: "organization",
       entityId: org.id,
       summary: org.name,
-      metadata: { changed: Object.keys(input) },
+      metadata: { changed: PROFILE_FIELDS },
     });
     return org;
   });
