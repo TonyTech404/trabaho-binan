@@ -95,8 +95,8 @@ export function JobFilters({
   return (
     <details
       ref={ref}
-      open={count > 0 || undefined}
-      className="group rounded-lg border border-line bg-surface lg:border-0 lg:bg-transparent"
+      // On wide screens the filters are always shown, even without JavaScript.
+      className="group rounded-lg border border-line bg-surface lg:border-0 lg:bg-transparent lg:[&::details-content]:block lg:[&::details-content]:[content-visibility:visible]"
     >
       <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 rounded-lg px-4 font-semibold lg:hidden [&::-webkit-details-marker]:hidden">
         <SlidersHorizontal aria-hidden="true" className="size-5 text-pine" />
@@ -109,7 +109,7 @@ export function JobFilters({
           Hide
         </span>
       </summary>
-      <fieldset className="space-y-4 border-t border-line px-4 pt-4 pb-5 lg:border-0 lg:p-0">
+      <fieldset className="grid gap-4 border-t border-line px-4 pt-4 pb-5 sm:grid-cols-2 lg:block lg:space-y-4 lg:border-0 lg:p-0">
         <legend className="sr-only">Filter jobs</legend>
         <SelectField
           id="f-city"
@@ -161,7 +161,7 @@ export function JobFilters({
           anyLabel="Any setup"
           options={Object.entries(WORK_SETUPS)}
         />
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full sm:col-span-2">
           Show jobs
         </Button>
       </fieldset>
