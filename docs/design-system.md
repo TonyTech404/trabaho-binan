@@ -18,8 +18,8 @@ live in [`app/components/`](../app/components/). Change a token there, not in a 
 ## Colour
 
 Proposed interface colours inspired by the updated Biñan city seal (deep green, gold, white).
-**They are not official city or PESO brand specifications**, and the site must not imply an
-official affiliation.
+They harmonise with the seal but are **not official city brand specifications**; if the City
+publishes a brand guide, align these tokens with it.
 
 | Token                    | Hex                   | Use                                                  | Contrast              |
 | ------------------------ | --------------------- | ---------------------------------------------------- | --------------------- |
@@ -116,10 +116,15 @@ Run before merging UI changes:
 
 ## Logo
 
-The interim mark (a notice with a gold tab) remains in use until the owner chooses a
-permanent identity. Three original concepts and a recommendation are in
-[`brand/logo-concepts.md`](brand/logo-concepts.md).
+The site uses the **City of Biñan seal** and the **PESO Biñan logo**, with permission
+confirmed by the project owner on 24 October 2026. `OfficialLogos` in
+`app/components/wordmark.tsx` shows them side by side, followed by the name “Trabaho Biñan”
+and “PESO Biñan”.
 
-Official City of Biñan and PESO logos are **reference material only**. Do not commit,
-publish, redraw, recolour or combine them, and do not use them on the site until their
-owners have approved it in writing.
+- Use the files in `app/assets/logos/` as supplied: scale them uniformly only. Never
+  redraw, recolour, crop, stretch, outline or merge them into a new mark.
+- Header: 32px tall on phones, 40px from `sm`. Footer and sign-in card: 48px.
+- Inside the home link the logos are decorative (`alt=""`) because the link text names
+  the office; elsewhere they have descriptive alt text.
+- The favicon and Apple touch icon are the PESO logo, scaled.
+- The logos are not covered by the repository's MIT licence.

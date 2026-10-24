@@ -34,7 +34,8 @@ export function shouldRevalidate({
 }
 
 export const links: Route.LinksFunction = () => [
-  { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+  { rel: "icon", href: "/favicon-32.png", type: "image/png", sizes: "32x32" },
+  { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
 ];
 
 export function meta() {
@@ -43,7 +44,7 @@ export function meta() {
     {
       name: "description",
       content:
-        "Find current job vacancies in Biñan, Laguna, with clear deadlines and application instructions. A pro bono community job board.",
+        "Find current job vacancies in Biñan, Laguna, with clear deadlines and application instructions. The job portal of PESO Biñan.",
     },
   ];
 }

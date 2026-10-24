@@ -1,21 +1,37 @@
 import { Link } from "react-router";
+import sealUrl from "~/assets/logos/city-of-binan-seal.png?url";
+import pesoUrl from "~/assets/logos/peso-binan.png?url";
 import { cn } from "~/lib/utils";
 
 /**
- * Interim mark (a notice with a gold tab), kept until the owner picks one of
- * the concepts in docs/brand/logo-concepts.md.
+ * The City of Biñan seal and the PESO logo, used with permission. Shown as
+ * supplied: only scaled, never cropped, recoloured or combined into one mark.
  */
-export function LogoMark({ className }: { className?: string }) {
+export function OfficialLogos({
+  className,
+  decorative = false,
+}: {
+  className?: string;
+  /** True when nearby text already names the office (for example inside the home link). */
+  decorative?: boolean;
+}) {
   return (
-    <svg viewBox="0 0 32 32" aria-hidden="true" className={cn("size-8 shrink-0", className)}>
-      <rect width="32" height="32" rx="7" fill="#1E5F24" />
-      <rect x="7" y="7" width="18" height="18" rx="2" fill="#fff" />
-      <rect x="7" y="7" width="6" height="18" rx="2" fill="#E8B923" />
-      <rect x="11" y="7" width="2" height="18" fill="#E8B923" />
-      <rect x="15.5" y="11" width="6.5" height="2" rx="1" fill="#1E5F24" />
-      <rect x="15.5" y="15" width="6.5" height="2" rx="1" fill="#1E5F24" />
-      <rect x="15.5" y="19" width="4" height="2" rx="1" fill="#1E5F24" />
-    </svg>
+    <span className={cn("flex shrink-0 items-center gap-1", className)}>
+      <img
+        src={sealUrl}
+        alt={decorative ? "" : "Seal of the City of Biñan"}
+        width={168}
+        height={168}
+        className="h-full w-auto object-contain"
+      />
+      <img
+        src={pesoUrl}
+        alt={decorative ? "" : "PESO Biñan logo"}
+        width={168}
+        height={168}
+        className="h-full w-auto object-contain"
+      />
+    </span>
   );
 }
 
@@ -23,14 +39,19 @@ export function Wordmark({ to = "/", suffix }: { to?: string; suffix?: string })
   return (
     <Link
       to={to}
-      className="inline-flex min-h-11 items-center gap-2.5 rounded-md text-ink no-underline"
+      className="inline-flex min-h-11 min-w-0 items-center gap-2 rounded-md text-ink no-underline sm:gap-2.5"
     >
-      <LogoMark />
-      <span className="text-xl leading-none font-bold tracking-[-0.01em] whitespace-nowrap">
-        Trabaho Biñan
-        {suffix ? (
-          <span className="ml-2 font-sans text-sm font-normal text-ink-muted">{suffix}</span>
-        ) : null}
+      <OfficialLogos decorative className="h-8 sm:h-10" />
+      <span className="flex min-w-0 flex-col">
+        <span className="text-lg leading-tight font-bold tracking-[-0.01em] whitespace-nowrap sm:text-xl sm:leading-tight">
+          Trabaho Biñan
+          {suffix ? (
+            <span className="ml-2 hidden text-sm font-normal text-ink-muted sm:inline">
+              {suffix}
+            </span>
+          ) : null}
+        </span>
+        <span className="text-xs leading-tight text-ink-muted">PESO Biñan</span>
       </span>
     </Link>
   );

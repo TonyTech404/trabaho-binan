@@ -1,12 +1,13 @@
 # Trabaho Biñan — Local Job Portal
 
-A community job portal for Biñan City, Laguna. Residents can find current
-local vacancies and see exactly how to apply. Reviewers and invited employers
-keep the listings accurate.
+The job portal of the Public Employment Service Office (PESO) of the City
+Government of Biñan, Laguna. Residents can find current local vacancies and see
+exactly how to apply. PESO reviewers and invited employers keep the listings
+accurate. The software is built and maintained pro bono.
 
-Trabaho Biñan is a **pro bono community initiative**. It is not an official
-website of the City Government of Biñan or of PESO Biñan, and no official
-partnership has been confirmed.
+The PESO Biñan logo and the City of Biñan seal are used with permission. They
+belong to their owners and are **not** covered by the MIT licence; see
+[app/assets/logos/README.md](app/assets/logos/README.md).
 
 **Status:** first release (public directory, review dashboard and employer
 pilot), deployed for pilot use at

@@ -23,7 +23,7 @@ export async function action({ request, context }: Route.ActionArgs) {
   const services = getServices(context);
   const form = await request.formData();
   await updateSiteSettings(await services.db(), viewer, {
-    operatorName: String(form.get("operatorName") ?? "") || "the Trabaho Biñan team",
+    operatorName: String(form.get("operatorName") ?? "") || "PESO Biñan",
     contactEmail: String(form.get("contactEmail") ?? ""),
     contactPhone: String(form.get("contactPhone") ?? ""),
     contactNote: String(form.get("contactNote") ?? ""),
@@ -48,7 +48,7 @@ export default function Settings({ loaderData }: Route.ComponentProps) {
         <Field
           name="operatorName"
           label="Who runs the site"
-          hint="Used in sentences such as “Ask … for an invitation”. Example: the Trabaho Biñan team."
+          hint="Used in sentences such as “Ask … for an invitation”. Example: PESO Biñan."
         >
           {(p) => <Input {...p} defaultValue={settings.operatorName} maxLength={200} />}
         </Field>

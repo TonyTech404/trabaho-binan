@@ -89,6 +89,11 @@ export default function Help({ loaderData }: Route.ComponentProps) {
           the way to apply. A listing is removed from search when it closes or its deadline passes.
         </p>
         <p>
+          Some listings are copied from official announcements, such as government vacancy notices,
+          or from an employer’s own careers page. Those listings say where they came from, and their
+          application link opens the original announcement. Check it before you apply.
+        </p>
+        <p>
           <strong>Verified employer</strong> means a reviewer completed the agreed checks on that
           employer or agency. It does not guarantee a job offer, and listings from employers who are
           not yet verified are still reviewed.
@@ -111,9 +116,8 @@ export default function Help({ loaderData }: Route.ComponentProps) {
       <section id="about">
         <h2>About this site</h2>
         <p>
-          Trabaho Biñan is a pro bono community initiative to make local job vacancies easier to
-          find. It is run by {settings.operatorName}. It is not an official website of the City
-          Government of Biñan or of PESO Biñan.
+          Trabaho Biñan is the job portal of the Public Employment Service Office (PESO) of the City
+          Government of Biñan. It makes current local vacancies easier to find, check and share.
         </p>
         <p>
           Read the{" "}

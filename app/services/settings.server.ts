@@ -4,7 +4,7 @@ import { settings } from "~/db/schema";
 import { cleanText } from "~/lib/validation";
 import { recordAudit, requireAdmin, type Actor } from "./common.server";
 
-/** Site settings editable by administrators. Defaults avoid claiming any official affiliation. */
+/** Site settings editable by administrators. */
 export interface SiteSettings {
   operatorName: string;
   contactEmail: string;
@@ -13,7 +13,7 @@ export interface SiteSettings {
 }
 
 export const SETTING_DEFAULTS: SiteSettings = {
-  operatorName: "the Trabaho Biñan team",
+  operatorName: "PESO Biñan",
   contactEmail: "",
   contactPhone: "",
   contactNote: "",

@@ -1,7 +1,7 @@
 import { CircleHelp, LayoutDashboard, LogIn } from "lucide-react";
 import { Form, Link, NavLink } from "react-router";
 import { cn } from "~/lib/utils";
-import { Wordmark } from "./wordmark";
+import { OfficialLogos, Wordmark } from "./wordmark";
 
 export interface ShellViewer {
   name: string;
@@ -36,18 +36,11 @@ const navLink = ({ isActive }: { isActive: boolean }) =>
     isActive && "text-pine",
   );
 
-export function SiteHeader({
-  viewer,
-  brand,
-}: {
-  viewer: ShellViewer | null;
-  /** Replaces the wordmark; used to preview logo concepts in the real header. */
-  brand?: React.ReactNode;
-}) {
+export function SiteHeader({ viewer }: { viewer: ShellViewer | null }) {
   return (
     <header className="border-b-2 border-gold bg-surface">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-1.5 sm:px-6">
-        {brand ?? <Wordmark />}
+        <Wordmark />
         <nav aria-label="Site" className="flex items-center">
           <NavLink to="/help" className={navLink}>
             <CircleHelp aria-hidden="true" className="hidden size-4.5 min-[400px]:block" />
@@ -76,12 +69,17 @@ export function SiteFooter() {
   return (
     <footer className="mt-16 border-t border-line bg-surface">
       <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 text-sm text-ink-muted sm:grid-cols-[1fr_auto] sm:px-6">
-        <div className="max-w-xl space-y-2">
-          <p className="text-lg font-bold text-ink">Trabaho Biñan</p>
+        <div className="max-w-xl space-y-3">
+          <div className="flex items-center gap-3">
+            <OfficialLogos className="h-12" />
+            <p className="leading-snug">
+              <span className="block text-lg font-bold text-ink">Trabaho Biñan</span>
+              Public Employment Service Office (PESO), City Government of Biñan
+            </p>
+          </div>
           <p>
-            A pro bono community job board for Biñan, Laguna. Listings are reviewed before they are
-            published. Trabaho Biñan is not an official website of the City Government of Biñan or
-            of PESO Biñan.
+            The job portal of PESO Biñan for vacancies in Biñan, Laguna. Listings are checked before
+            they are published.
           </p>
           <p>Never pay to apply for a job. Report any listing that asks for fees.</p>
         </div>

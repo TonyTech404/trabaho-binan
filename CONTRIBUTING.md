@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for helping. Trabaho Biñan is a pro bono community job board, so
+Thank you for helping. Trabaho Biñan is a pro bono project for PESO Biñan, so
 changes should keep it simple, free to run and safe for the people who use it.
 
 ## Getting started

@@ -52,6 +52,4 @@ export default [
   route("sitemap.xml", "routes/sitemap.ts"),
   route("logout", "routes/logout.tsx"),
   route("healthz", "routes/healthz.ts"),
-  // Logo concepts for the owner to compare; returns 404 in production.
-  route("brand-preview", "routes/brand-preview.tsx"),
 ] satisfies RouteConfig;
