@@ -9,7 +9,7 @@
     "dev": "react-router dev",
     "build": "react-router build",
     "preview": "npm run build && vite preview",
-    "typecheck": "wrangler types && react-router typegen && tsc -b",
+    "typecheck": "wrangler types && react-router typegen && tsc -b && tsc -p tsconfig.tools.json",
     "cf-typegen": "wrangler types",
     "postinstall": "wrangler types",
     "db:generate": "drizzle-kit generate",

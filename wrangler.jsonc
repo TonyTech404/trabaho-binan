@@ -11,82 +11,82 @@
  * Secrets (BETTER_AUTH_SECRET) are set with `wrangler secret put`, never here.
  */
 {
-	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "trabaho-binan-dev",
-	"main": "./workers/app.ts",
-	"compatibility_date": "2026-10-19",
-	"compatibility_flags": ["nodejs_compat"],
-	"workers_dev": false,
-	"preview_urls": false,
-	"observability": { "enabled": true },
-	"upload_source_maps": true,
-	"secrets": { "required": ["BETTER_AUTH_SECRET"] },
-	"vars": {
-		// APP_URL empty: links use the address you browse with.
-		"APP_ENV": "development",
-		"APP_URL": ""
-	},
-	"hyperdrive": [
-		{
-			// Locally the binding connects to CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE.
-			"binding": "HYPERDRIVE",
-			"id": "03f35acb820b4021a930c8e9f24d29f5"
-		}
-	],
-	"ratelimits": [
-		// Approximate, per-location limits (Workers Rate Limiting binding).
-		{ "name": "AUTH_LIMITER", "namespace_id": "4001", "simple": { "limit": 10, "period": 60 } },
-		{ "name": "FORM_LIMITER", "namespace_id": "4002", "simple": { "limit": 5, "period": 60 } }
-	],
-	"triggers": { "crons": [] },
-	"env": {
-		"staging": {
-			"name": "trabaho-binan-staging",
-			"workers_dev": true,
-			"preview_urls": false,
-			// Run close to the Neon database (AWS Singapore): pages make several queries.
-			"placement": { "mode": "targeted", "region": "aws:ap-southeast-1" },
-			"observability": { "enabled": true },
-			"secrets": { "required": ["BETTER_AUTH_SECRET"] },
-			"vars": {
-				// APP_URL is left empty on staging; the request origin is used instead.
-				"APP_ENV": "staging",
-				"APP_URL": ""
-			},
-			"hyperdrive": [{ "binding": "HYPERDRIVE", "id": "03f35acb820b4021a930c8e9f24d29f5" }],
-			"ratelimits": [
-				{ "name": "AUTH_LIMITER", "namespace_id": "4201", "simple": { "limit": 10, "period": 60 } },
-				{ "name": "FORM_LIMITER", "namespace_id": "4202", "simple": { "limit": 5, "period": 60 } }
-			],
-			// No cron on staging: the account allows 5 Cron Triggers in total.
-			"triggers": { "crons": [] }
-		},
-		"production": {
-			"name": "trabaho-binan",
-			"workers_dev": false,
-			"preview_urls": false,
-			"routes": [{ "pattern": "trabaho.bantaybinan.com", "custom_domain": true }],
-			"placement": { "mode": "targeted", "region": "aws:ap-southeast-1" },
-			"observability": { "enabled": true },
-			"secrets": { "required": ["BETTER_AUTH_SECRET"] },
-			"vars": {
-				"APP_ENV": "production",
-				"APP_URL": "https://trabaho.bantaybinan.com"
-			},
-			"hyperdrive": [
-				{
-					// Production Neon branch, restricted runtime role. Query caching is
-					// disabled so sessions, permissions and closures are read fresh.
-					"binding": "HYPERDRIVE",
-					"id": "b572c139ba864a67817c7a527bf3a9d9"
-				}
-			],
-			"ratelimits": [
-				{ "name": "AUTH_LIMITER", "namespace_id": "4101", "simple": { "limit": 10, "period": 60 } },
-				{ "name": "FORM_LIMITER", "namespace_id": "4102", "simple": { "limit": 5, "period": 60 } }
-			],
-			// Hourly expiry sweep. Public queries also enforce deadlines if this fails.
-			"triggers": { "crons": ["7 * * * *"] }
-		}
-	}
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "trabaho-binan-dev",
+  "main": "./workers/app.ts",
+  "compatibility_date": "2026-10-19",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "observability": { "enabled": true },
+  "upload_source_maps": true,
+  "secrets": { "required": ["BETTER_AUTH_SECRET"] },
+  "vars": {
+    // APP_URL empty: links use the address you browse with.
+    "APP_ENV": "development",
+    "APP_URL": "",
+  },
+  "hyperdrive": [
+    {
+      // Locally the binding connects to CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE.
+      "binding": "HYPERDRIVE",
+      "id": "03f35acb820b4021a930c8e9f24d29f5",
+    },
+  ],
+  "ratelimits": [
+    // Approximate, per-location limits (Workers Rate Limiting binding).
+    { "name": "AUTH_LIMITER", "namespace_id": "4001", "simple": { "limit": 10, "period": 60 } },
+    { "name": "FORM_LIMITER", "namespace_id": "4002", "simple": { "limit": 5, "period": 60 } },
+  ],
+  "triggers": { "crons": [] },
+  "env": {
+    "staging": {
+      "name": "trabaho-binan-staging",
+      "workers_dev": true,
+      "preview_urls": false,
+      // Run close to the Neon database (AWS Singapore): pages make several queries.
+      "placement": { "mode": "targeted", "region": "aws:ap-southeast-1" },
+      "observability": { "enabled": true },
+      "secrets": { "required": ["BETTER_AUTH_SECRET"] },
+      "vars": {
+        // APP_URL is left empty on staging; the request origin is used instead.
+        "APP_ENV": "staging",
+        "APP_URL": "",
+      },
+      "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "03f35acb820b4021a930c8e9f24d29f5" }],
+      "ratelimits": [
+        { "name": "AUTH_LIMITER", "namespace_id": "4201", "simple": { "limit": 10, "period": 60 } },
+        { "name": "FORM_LIMITER", "namespace_id": "4202", "simple": { "limit": 5, "period": 60 } },
+      ],
+      // No cron on staging: the account allows 5 Cron Triggers in total.
+      "triggers": { "crons": [] },
+    },
+    "production": {
+      "name": "trabaho-binan",
+      "workers_dev": false,
+      "preview_urls": false,
+      "routes": [{ "pattern": "trabaho.bantaybinan.com", "custom_domain": true }],
+      "placement": { "mode": "targeted", "region": "aws:ap-southeast-1" },
+      "observability": { "enabled": true },
+      "secrets": { "required": ["BETTER_AUTH_SECRET"] },
+      "vars": {
+        "APP_ENV": "production",
+        "APP_URL": "https://trabaho.bantaybinan.com",
+      },
+      "hyperdrive": [
+        {
+          // Production Neon branch, restricted runtime role. Query caching is
+          // disabled so sessions, permissions and closures are read fresh.
+          "binding": "HYPERDRIVE",
+          "id": "b572c139ba864a67817c7a527bf3a9d9",
+        },
+      ],
+      "ratelimits": [
+        { "name": "AUTH_LIMITER", "namespace_id": "4101", "simple": { "limit": 10, "period": 60 } },
+        { "name": "FORM_LIMITER", "namespace_id": "4102", "simple": { "limit": 5, "period": 60 } },
+      ],
+      // Hourly expiry sweep. Public queries also enforce deadlines if this fails.
+      "triggers": { "crons": ["7 * * * *"] },
+    },
+  },
 }
