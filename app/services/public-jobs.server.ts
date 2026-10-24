@@ -139,24 +139,28 @@ export async function searchPublicJobs(db: Database, filters: PublicJobFilters, 
       ? [asc(jobs.deadlineAt), desc(jobs.publishedAt)]
       : [desc(jobs.publishedAt), asc(jobs.deadlineAt)];
 
-  const [rows, [{ total }]] = await Promise.all([
-    db
-      .select(cardColumns)
-      .from(jobs)
-      .innerJoin(organizations, eq(organizations.id, jobs.organizationId))
-      .where(where)
-      .orderBy(...order)
-      .limit(PAGE_SIZE)
-      .offset((filters.page - 1) * PAGE_SIZE),
-    db
+  // One round trip: the window function returns the total alongside the page.
+  const rows = await db
+    .select({ ...cardColumns, total: sql<number>`count(*) over ()`.mapWith(Number) })
+    .from(jobs)
+    .innerJoin(organizations, eq(organizations.id, jobs.organizationId))
+    .where(where)
+    .orderBy(...order)
+    .limit(PAGE_SIZE)
+    .offset((filters.page - 1) * PAGE_SIZE);
+
+  let total = rows[0]?.total ?? 0;
+  if (rows.length === 0 && filters.page > 1) {
+    // Past the last page: count separately so pagination can still be shown.
+    [{ total }] = await db
       .select({ total: count() })
       .from(jobs)
       .innerJoin(organizations, eq(organizations.id, jobs.organizationId))
-      .where(where),
-  ]);
+      .where(where);
+  }
 
   return {
-    jobs: rows,
+    jobs: rows.map(({ total: _total, ...job }) => job),
     total,
     page: filters.page,
     pageCount: Math.max(1, Math.ceil(total / PAGE_SIZE)),
