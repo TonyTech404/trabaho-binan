@@ -7,8 +7,9 @@ lands, so another session can resume accurately.
 
 **Production:** live at https://trabaho.bantaybinan.com.
 
-- Deployed commit `03a8f0c` from branch `feat/first-release`.
-- Worker `trabaho-binan`, version `9100c0f2-4903-4d91-934b-daead1db67a4`.
+- Deployed commit `7e98ecd` from branch `feat/first-release`.
+- Worker `trabaho-binan`, version `70261148-5934-4495-a1a1-9674d57c4bfc`.
+- Staging runs the same commit (version `6e33efc2-6e2a-4def-947c-4f7d9a6d7c4f`).
 
 **Branch:** `feat/first-release`. The owner approved pushing to the public
 GitHub repository and opening a draft PR after the secret scan.
@@ -43,7 +44,7 @@ of the logo concepts in `docs/brand/logo-concepts.md`.
     reviewer dashboard and the employer dashboard.
   - Fixes from the review: filters collapsed on small screens, closed-job
     wording, peso formatting in diffs, error-summary labels, employer
-    required on the first submit.
+    required on the first submit, plain empty state with no listings.
   - The branding session also ran axe and overflow checks on 24 pages.
 - **Ops:**
   - CI workflow, MIT licence, administrator invitation script, encrypted
@@ -95,7 +96,7 @@ The first administrator invitation (for the owner) was created with
 | Neon branch `staging` (synthetic data)                                  | `br-flat-heart-b3j4hm3v`           | Free                        |
 | Hyperdrive `trabaho-binan-production` (caching disabled)                | `b572c139ba864a67817c7a527bf3a9d9` | Free                        |
 | Hyperdrive `trabaho-binan-staging` (caching disabled)                   | `03f35acb820b4021a930c8e9f24d29f5` | Free                        |
-| Worker `trabaho-binan` + custom domain `trabaho.bantaybinan.com` + cron | version `9100c0f2…`                | Workers Free                |
+| Worker `trabaho-binan` + custom domain `trabaho.bantaybinan.com` + cron | version `70261148…`                | Workers Free                |
 | Worker `trabaho-binan-staging` (workers.dev)                            | —                                  | Workers Free                |
 
 No paid plan or add-on was enabled. `bantaybinan.com` and `www` still route to
