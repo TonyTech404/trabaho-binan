@@ -78,8 +78,9 @@ export function SiteFooter() {
             </p>
           </div>
           <p>
-            The job portal of PESO Biñan for vacancies in Biñan, Laguna. Listings are checked before
-            they are published.
+            The job portal of PESO Biñan for vacancies in Biñan, Laguna. Listings from employers are
+            reviewed before they are published. Listings copied from public announcements show their
+            source.
           </p>
           <p>Never pay to apply for a job. Report any listing that asks for fees.</p>
         </div>

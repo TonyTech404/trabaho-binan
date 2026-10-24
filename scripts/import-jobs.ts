@@ -193,11 +193,15 @@ async function main() {
       const created = await createJob(db, actor, parsed.data, { organizationId });
       await submitJob(db, actor, created.id);
       if (action === "publish") {
+        // Published from the source, but not confirmed with the employer: leave
+        // "last confirmed" empty so the listing shows up for reconfirmation.
         await approveJob(
           db,
           actor,
           created.id,
-          `Imported from ${provenance.sourceName}; the source states the closing date.`,
+          `Imported from ${provenance.sourceName}; the source states the closing date. Not yet confirmed with the employer.`,
+          new Date(),
+          { confirmedOpen: false },
         );
       }
       plan.push({ index, title: parsed.data.title, action, why });

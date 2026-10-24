@@ -75,6 +75,18 @@ describeDb("vacancy lifecycle", () => {
     expect(await search("Lifecycle Baker Alpha")).toContain("Lifecycle Baker Alpha");
   });
 
+  it("can publish without marking the vacancy as confirmed open (imports)", async () => {
+    const job = await createJob(db, reviewer, jobInput({ title: "Lifecycle Imported Clerk" }), {
+      organizationId: orgId,
+    });
+    const published = await approveJob(db, reviewer, job.id, "Imported", new Date(), {
+      confirmedOpen: false,
+    });
+    expect(published.status).toBe("published");
+    expect(published.lastConfirmedAt).toBeNull();
+    expect(published.lastConfirmedById).toBeNull();
+  });
+
   it("never exposes internal contact fields on public job data", async () => {
     const job = await createJob(
       db,

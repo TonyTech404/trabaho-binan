@@ -85,13 +85,16 @@ export default function Help({ loaderData }: Route.ComponentProps) {
       <section id="verified">
         <h2>How listings are checked</h2>
         <p>
-          Every listing is reviewed before it is published: the job details, the closing date and
-          the way to apply. A listing is removed from search when it closes or its deadline passes.
+          Listings that employers submit, or that PESO staff add, are reviewed before they are
+          published: the job details, the closing date and the way to apply. A listing is removed
+          from search when it closes or its deadline passes.
         </p>
         <p>
-          Some listings are copied from official announcements, such as government vacancy notices,
-          or from an employer’s own careers page. Those listings say where they came from, and their
-          application link opens the original announcement. Check it before you apply.
+          Some listings are copied from public announcements, such as government vacancy notices or
+          an employer’s own careers page. They are published when the announcement states a closing
+          date, but they have not been confirmed with the employer. Their description ends with the
+          source, and their application link opens the original announcement. Check it before you
+          apply.
         </p>
         <p>
           <strong>Verified employer</strong> means a reviewer completed the agreed checks on that

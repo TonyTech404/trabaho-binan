@@ -177,6 +177,10 @@ DATABASE_URL="$PRODUCTION_APP_URL" npm run jobs:import -- data/imports/<file>.js
   with the employer first.
 - The actions are recorded under "Listings import", a suspended staff account
   that cannot sign in, so the audit trail shows they were automated.
+- Published imports are **not** marked as confirmed open, so they appear under
+  "Needs reconfirmation" on the reviewer overview until someone checks with
+  the employer. The footer and help page tell residents that these listings
+  are copied from public announcements and not confirmed.
 - The description ends with the source, and the application link opens the
   original announcement. Organizations it creates are **not verified**.
 - Re-running a file skips vacancies already imported from the same source.

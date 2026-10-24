@@ -257,14 +257,20 @@ export async function withdrawSubmission(db: Database, actor: Actor, jobId: stri
   });
 }
 
-/** Approve and publish. Staff only; employers can never publish their own listings. */
+/**
+ * Approve and publish. Staff only; employers can never publish their own listings.
+ * A reviewer's approval also confirms the vacancy is open; pass
+ * `confirmedOpen: false` when nobody checked with the employer (imports).
+ */
 export async function approveJob(
   db: Database,
   actor: Actor,
   jobId: string,
   note: string | null = null,
   now = new Date(),
+  options: { confirmedOpen?: boolean } = {},
 ) {
+  const confirmedOpen = options.confirmedOpen ?? true;
   requireStaff(actor);
   return db.transaction(async (tx) => {
     const job = await lockJob(tx, actor, jobId);
@@ -281,8 +287,8 @@ export async function approveJob(
         status: "published",
         publishedAt: now,
         firstPublishedAt: job.firstPublishedAt ?? now,
-        lastConfirmedAt: now,
-        lastConfirmedById: actor.id,
+        lastConfirmedAt: confirmedOpen ? now : job.lastConfirmedAt,
+        lastConfirmedById: confirmedOpen ? actor.id : job.lastConfirmedById,
         updatedById: actor.id,
       })
       .where(eq(jobs.id, job.id))
