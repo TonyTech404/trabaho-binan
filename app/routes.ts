@@ -35,6 +35,17 @@ export default [
     route("export.csv", "routes/manage/export.ts"),
   ]),
 
+  // Invited employers
+  ...prefix("employer", [
+    layout("routes/employer/layout.tsx", [
+      index("routes/employer/index.tsx"),
+      route("jobs/new", "routes/employer/job-new.tsx"),
+      route("jobs/:jobId", "routes/employer/job.tsx"),
+      route("jobs/:jobId/edit", "routes/employer/job-edit.tsx"),
+      route("profile", "routes/employer/profile.tsx"),
+    ]),
+  ]),
+
   route("account", "routes/account.tsx"),
   route("apply/:publicId", "routes/apply.ts"),
   route("api/job-view/:publicId", "routes/api.job-view.ts"),
