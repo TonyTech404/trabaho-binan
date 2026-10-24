@@ -15,6 +15,14 @@ const requestHandler = createRequestHandler(
 
 export default {
   async fetch(request, env, ctx) {
+    // The zone-wide "Always Use HTTPS" setting belongs to the parent domain,
+    // so deployed environments upgrade plain HTTP here.
+    const url = new URL(request.url);
+    if (url.protocol === "http:" && env.APP_ENV !== "development") {
+      url.protocol = "https:";
+      return Response.redirect(url.toString(), 301);
+    }
+
     if (isCrossSiteMutation(request)) {
       return new Response("Cross-site form submissions are not allowed.", { status: 403 });
     }
@@ -23,7 +31,7 @@ export default {
     const authenticated = hasSessionCookie(request);
     const securityOptions = {
       nonce: services.nonce,
-      isHttps: new URL(request.url).protocol === "https:",
+      isHttps: url.protocol === "https:",
       dev: import.meta.env.DEV,
       authenticated,
     };
