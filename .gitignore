@@ -45,3 +45,6 @@ worker-configuration.d.ts
 
 # Playwright MCP session artefacts
 /.playwright-mcp/
+
+# Playwright signed-in state for tests
+/playwright/.auth/
