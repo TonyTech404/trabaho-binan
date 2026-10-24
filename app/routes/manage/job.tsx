@@ -106,6 +106,7 @@ export async function action({ request, params, context }: Route.ActionArgs) {
       case "request_changes":
         if (!reason) return needReason();
         job = await requestJobChanges(db, viewer, jobId, reason);
+        notice = "changes_requested";
         break;
       case "reject":
         if (!reason) return needReason();
