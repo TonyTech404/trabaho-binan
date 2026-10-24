@@ -38,7 +38,7 @@ export default function Settings({ loaderData }: Route.ComponentProps) {
     <>
       <PageHeader
         title="Settings"
-        description="Shown on the help, privacy and password pages. Do not describe the site as official unless a partnership has been confirmed in writing."
+        description="Who runs the site and how to reach them. Shown on the help, privacy and password pages."
       />
       <NoticeBanner />
       <Form
