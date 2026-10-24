@@ -2,12 +2,14 @@
  * Imports researched vacancies from public sources (government notices and
  * employers' own careers pages) through the normal job services.
  *
- *   DATABASE_URL=postgres://… npm run jobs:import -- data/imports/<file>.json [--dry-run] [--production]
+ *   DATABASE_URL=postgres://… npm run jobs:import -- data/imports/<file>.json [--dry-run] [--production] [--publish-undated]
  *
  * Each vacancy is created, submitted and then either published or left in the
  * review queue:
  * - published when the source states a future deadline and the text raises no
  *   policy flags (age, gender, appearance…);
+ * - with --publish-undated, also published when the source gives no deadline
+ *   (the listing then closes 30 days after posting and says so);
  * - otherwise left as "pending review" for a PESO reviewer to confirm.
  *
  * The actions are recorded under a suspended, non-sign-in staff account named
@@ -79,6 +81,7 @@ async function main() {
     process.exit(1);
   }
   const dryRun = process.argv.includes("--dry-run");
+  const publishUndated = process.argv.includes("--publish-undated");
   const data = JSON.parse(readFileSync(file, "utf8")) as ImportFile;
 
   const { db, pool, host } = connect("DATABASE_URL");
@@ -112,7 +115,10 @@ async function main() {
         // Say where the vacancy was announced, at the end of the description.
         description: [
           item.job.description,
-          `Source: ${sourceLine(provenance, data.retrievedAt)}. The application link opens the original announcement; check it before you apply.`,
+          `Source: ${sourceLine(provenance, data.retrievedAt)}. The application link opens the original announcement; check it before you apply.` +
+            (provenance.deadlineBasis === "stated"
+              ? ""
+              : " The original announcement does not give a closing date, so this listing closes 30 days after it was posted."),
         ]
           .filter(Boolean)
           .join("\n\n"),
@@ -134,14 +140,16 @@ async function main() {
         parsed.data.description,
         parsed.data.qualifications,
       );
-      const action =
-        provenance.deadlineBasis === "stated" && flags.length === 0 ? "publish" : "review";
+      const dated = provenance.deadlineBasis === "stated";
+      const action = (dated || publishUndated) && flags.length === 0 ? "publish" : "review";
       const why =
         flags.length > 0
           ? `policy flags: ${flags.map((f) => f.label).join(", ")}`
-          : provenance.deadlineBasis === "stated"
+          : dated
             ? "deadline stated in source"
-            : "deadline not stated in source";
+            : publishUndated
+              ? "no deadline in source; closes 30 days after posting"
+              : "deadline not stated in source";
 
       if (dryRun || !actor) {
         plan.push({ index, title: parsed.data.title, action, why });
@@ -199,7 +207,7 @@ async function main() {
           db,
           actor,
           created.id,
-          `Imported from ${provenance.sourceName}; the source states the closing date. Not yet confirmed with the employer.`,
+          `Imported from ${provenance.sourceName}; ${dated ? "the source states the closing date" : "no closing date in the source, so 30 days after posting"}. Not yet confirmed with the employer.`,
           new Date(),
           { confirmedOpen: false },
         );

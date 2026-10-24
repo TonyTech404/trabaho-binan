@@ -175,6 +175,9 @@ DATABASE_URL="$PRODUCTION_APP_URL" npm run jobs:import -- data/imports/<file>.js
   and its text raises no policy flags (age, gender, appearance and similar).
   Everything else goes to the **review queue** for a PESO reviewer to confirm
   with the employer first.
+- `--publish-undated` also publishes vacancies whose source gives no closing
+  date. They close 30 days after posting, and the description says so. Flagged
+  vacancies still go to the review queue.
 - The actions are recorded under "Listings import", a suspended staff account
   that cannot sign in, so the audit trail shows they were automated.
 - Published imports are **not** marked as confirmed open, so they appear under
