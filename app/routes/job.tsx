@@ -40,7 +40,7 @@ import { describeAge, formatDate, formatLongDate } from "~/lib/time";
 import { getPublicJob } from "~/services/public-jobs.server";
 import type { Route } from "./+types/job";
 
-export async function loader({ params, context, request }: Route.LoaderArgs) {
+export async function loader({ params, context }: Route.LoaderArgs) {
   const services = getServices(context);
   const db = await services.db();
   const now = new Date();
@@ -48,7 +48,9 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
   if (!result) throw data("Job not found", { status: 404 });
 
   const canonicalPath = `/jobs/${result.job.publicId}/${result.job.slug}`;
-  if (new URL(request.url).pathname !== canonicalPath) {
+  // Compare route params, not the request path: client navigations request
+  // "/jobs/:id/:slug.data", and comparing that path caused a redirect loop.
+  if (params.slug !== result.job.slug) {
     throw redirect(canonicalPath, 301);
   }
 
