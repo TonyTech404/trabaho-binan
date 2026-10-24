@@ -107,6 +107,13 @@ export function JobTimeline({ events }: { events: TimelineEvent[] }) {
 
 type ContentLike = Record<string, unknown> & { deadlineAt: Date | string };
 
+const pesoFormat = new Intl.NumberFormat("en-PH", {
+  style: "currency",
+  currency: "PHP",
+  maximumFractionDigits: 0,
+});
+const peso = (v: unknown) => pesoFormat.format(Number(v));
+
 const DIFF_FIELDS: {
   key: string;
   label: string;
@@ -132,8 +139,8 @@ const DIFF_FIELDS: {
     label: "Experience",
     format: (v) => label(EXPERIENCE_LEVELS, v as string),
   },
-  { key: "salaryMin", label: "Minimum pay" },
-  { key: "salaryMax", label: "Maximum pay" },
+  { key: "salaryMin", label: "Minimum pay", format: (v) => peso(v) },
+  { key: "salaryMax", label: "Maximum pay", format: (v) => peso(v) },
   { key: "salaryPeriod", label: "Pay period", format: (v) => label(SALARY_PERIODS, v as string) },
   { key: "openings", label: "Openings" },
   { key: "applicationUrl", label: "Application link" },

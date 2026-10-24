@@ -275,7 +275,7 @@ export default function JobPage({ loaderData }: Route.ComponentProps) {
               ) : null}
               <p className="basis-full">
                 Posted {describeAge(job.firstPublishedAt)}
-                {job.lastConfirmedAt ? (
+                {open && job.lastConfirmedAt ? (
                   <>; confirmed open {describeAge(job.lastConfirmedAt)}</>
                 ) : null}
               </p>

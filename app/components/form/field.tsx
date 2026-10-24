@@ -71,6 +71,12 @@ export function Field({
   );
 }
 
+/** Prefix the field name unless the message already mentions it. */
+function withLabel(label: string | undefined, message: string | undefined) {
+  if (!label || !message || message.toLowerCase().includes(label.toLowerCase())) return message;
+  return `${label}: ${message}`;
+}
+
 /** Summary of errors at the top of a form; receives focus so screen readers announce it. */
 export function ErrorSummary({
   errors,
@@ -101,8 +107,7 @@ export function ErrorSummary({
                 message
               ) : (
                 <a href={`#field-${key}`} className="font-semibold text-ink underline">
-                  {labels?.[key] ? `${labels[key]}: ` : ""}
-                  {message}
+                  {withLabel(labels?.[key], message)}
                 </a>
               )}
             </li>

@@ -29,11 +29,16 @@ export async function action({ request, context }: Route.ActionArgs) {
   const form = await request.formData();
   const parsed = parseJobForm(form);
   const organizationId = String(form.get("organizationId") ?? "");
-  if (!parsed.ok)
+  if (!parsed.ok || !organizationId) {
+    const errors = {
+      ...(organizationId ? {} : { organizationId: "Choose an employer." }),
+      ...(parsed.ok ? {} : parsed.errors),
+    };
     return data(
-      { errors: parsed.errors, values: { ...parsed.values, organizationId }, error: undefined },
+      { errors, values: { ...parsed.values, organizationId }, error: undefined },
       { status: 400 },
     );
+  }
   const db = await getServices(context).db();
   try {
     const job = await createJob(db, viewer, parsed.input, { organizationId });
