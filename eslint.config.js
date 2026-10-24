@@ -8,6 +8,7 @@ export default tseslint.config(
   {
     ignores: [
       "build/**",
+      "video/**",
       ".react-router/**",
       "node_modules/**",
       "worker-configuration.d.ts",

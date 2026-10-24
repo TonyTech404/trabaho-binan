@@ -1,0 +1,338 @@
+{
+  "admin-audit": {
+    "file": "footage/desktop/admin-audit.mp4",
+    "duration": 5.102999925613403,
+    "marks": [
+      {
+        "label": "list",
+        "t": 1.684999942779541,
+        "box": {
+          "x": 360,
+          "y": 281.421875,
+          "width": 976,
+          "height": 4851
+        },
+        "viewport": {
+          "width": 1440,
+          "height": 810
+        }
+      }
+    ]
+  },
+  "admin-settings": {
+    "file": "footage/desktop/admin-settings.mp4",
+    "duration": 3.9549999237060547,
+    "marks": [
+      {
+        "label": "form",
+        "t": 1.5850000381469727,
+        "box": {
+          "x": 360,
+          "y": 170.796875,
+          "width": 672,
+          "height": 579
+        },
+        "viewport": {
+          "width": 1440,
+          "height": 810
+        }
+      }
+    ]
+  },
+  "employer-applications": {
+    "file": "footage/desktop/employer-applications.mp4",
+    "duration": 18.29200005531311,
+    "marks": [
+      {
+        "label": "nav",
+        "t": 0.9809999465942383,
+        "box": {
+          "x": 104,
+          "y": 128,
+          "width": 224,
+          "height": 44
+        },
+        "viewport": {
+          "width": 1440,
+          "height": 810
+        }
+      },
+      {
+        "label": "download",
+        "t": 9.592999935150146,
+        "box": {
+          "x": 377,
+          "y": 438.984375,
+          "width": 192.796875,
+          "height": 44
+        },
+        "viewport": {
+          "width": 1440,
+          "height": 810
+        }
+      }
+    ]
+  },
+  "employer-dashboard": {
+    "file": "footage/desktop/employer-dashboard.mp4",
+    "duration": 5.791000127792358,
+    "marks": [
+      {
+        "label": "post",
+        "t": 1.1850001811981201,
+        "box": {
+          "x": 1204.453125,
+          "y": 82,
+          "width": 131.546875,
+          "height": 44
+        },
+        "viewport": {
+          "width": 1440,
+          "height": 810
+        }
+      }
+    ]
+  },
+  "employer-form": {
+    "file": "footage/desktop/employer-form.mp4",
+    "duration": 22.861000061035156,
+    "marks": [
+      {
+        "label": "description",
+        "t": 5.0950000286102295,
+        "box": {
+          "x": 381,
+          "y": 796.703125,
+          "width": 934,
+          "height": 112
+        },
+        "viewport": {
+          "width": 1440,
+          "height": 810
+        }
+      },
+      {
+        "label": "accepts",
+        "t": 18.698999881744385,
+        "box": {
+          "x": 394,
+          "y": 323.640625,
+          "width": 20,
+          "height": 20
+        },
+        "viewport": {
+          "width": 1440,
+          "height": 810
+        }
+      }
+    ]
+  },
+  "employer-submit": {
+    "file": "footage/desktop/employer-submit.mp4",
+    "duration": 6.869999885559082,
+    "marks": [
+      {
+        "label": "submit",
+        "t": 0.25799989700317383,
+        "box": {
+          "x": 377,
+          "y": 729.328125,
+          "width": 176,
+          "height": 44
+        },
+        "viewport": {
+          "width": 1440,
+          "height": 810
+        }
+      }
+    ]
+  },
+  "reviewer-approve": {
+    "file": "footage/desktop/reviewer-approve.mp4",
+    "duration": 9.794000148773193,
+    "marks": [
+      {
+        "label": "approve",
+        "t": 4.26800012588501,
+        "box": {
+          "x": 377,
+          "y": 306.140625,
+          "width": 184.171875,
+          "height": 44
+        },
+        "viewport": {
+          "width": 1440,
+          "height": 810
+        }
+      }
+    ]
+  },
+  "reviewer-overview": {
+    "file": "footage/desktop/reviewer-overview.mp4",
+    "duration": 6.266000032424927,
+    "marks": [
+      {
+        "label": "waiting",
+        "t": 1.4769999980926514,
+        "box": {
+          "x": 360,
+          "y": 211.390625,
+          "width": 484,
+          "height": 56
+        },
+        "viewport": {
+          "width": 1440,
+          "height": 810
+        }
+      }
+    ]
+  },
+  "visitor-apply": {
+    "file": "footage/desktop/visitor-apply.mp4",
+    "duration": 21.151000022888184,
+    "marks": [
+      {
+        "label": "resume",
+        "t": 12.424000024795532,
+        "box": {
+          "x": 453,
+          "y": 323.6875,
+          "width": 566,
+          "height": 44
+        },
+        "viewport": {
+          "width": 1440,
+          "height": 810
+        }
+      },
+      {
+        "label": "sent",
+        "t": 18.543999910354614,
+        "box": {
+          "x": 460,
+          "y": 102,
+          "width": 556,
+          "height": 23.375
+        },
+        "viewport": {
+          "width": 1440,
+          "height": 810
+        }
+      }
+    ]
+  },
+  "visitor-filters": {
+    "file": "footage/desktop/visitor-filters.mp4",
+    "duration": 9.311999797821045,
+    "marks": [
+      {
+        "label": "filters",
+        "t": 0.685999870300293,
+        "box": {
+          "x": 168,
+          "y": 543.515625,
+          "width": 264,
+          "height": 44
+        },
+        "viewport": {
+          "width": 1440,
+          "height": 810
+        }
+      }
+    ]
+  },
+  "visitor-home": {
+    "file": "footage/desktop/visitor-home.mp4",
+    "duration": 6.613999843597412,
+    "marks": [
+      {
+        "label": "results",
+        "t": 1.7829999923706055,
+        "box": {
+          "x": 472,
+          "y": 311.890625,
+          "width": 139.734375,
+          "height": 31.71875
+        },
+        "viewport": {
+          "width": 1440,
+          "height": 810
+        }
+      }
+    ]
+  },
+  "visitor-job": {
+    "file": "footage/desktop/visitor-job.mp4",
+    "duration": 9.330999851226807,
+    "marks": [
+      {
+        "label": "facts",
+        "t": 4.309000015258789,
+        "box": {
+          "x": 168,
+          "y": 97.046875,
+          "width": 712,
+          "height": 290.34375
+        },
+        "viewport": {
+          "width": 1440,
+          "height": 810
+        }
+      },
+      {
+        "label": "apply",
+        "t": 6.858999967575073,
+        "box": {
+          "x": 938,
+          "y": 294.015625,
+          "width": 316,
+          "height": 48
+        },
+        "viewport": {
+          "width": 1440,
+          "height": 810
+        }
+      }
+    ]
+  },
+  "visitor-safety": {
+    "file": "footage/desktop/visitor-safety.mp4",
+    "duration": 9.650000095367432,
+    "marks": [
+      {
+        "label": "warning",
+        "t": 1.6029999256134033,
+        "box": {
+          "x": 990,
+          "y": 370.140625,
+          "width": 248,
+          "height": 23.375
+        },
+        "viewport": {
+          "width": 1440,
+          "height": 810
+        }
+      }
+    ]
+  },
+  "visitor-search": {
+    "file": "footage/desktop/visitor-search.mp4",
+    "duration": 7.503999948501587,
+    "marks": [
+      {
+        "label": "results",
+        "t": 4.861999988555908,
+        "box": {
+          "x": 472,
+          "y": 318.03125,
+          "width": 126.3125,
+          "height": 31.71875
+        },
+        "viewport": {
+          "width": 1440,
+          "height": 810
+        }
+      }
+    ]
+  }
+}

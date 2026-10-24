@@ -7,3 +7,8 @@ worker-configuration.d.ts
 playwright-report
 test-results
 docs/project-plan.md
+video/out
+video/footage
+video/public
+video/src/data/footage-*.json
+video/src/data/narration.json

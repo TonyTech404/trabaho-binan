@@ -1,0 +1,201 @@
+{
+  "voice": "af_heart",
+  "pronounce": {
+    "Biñan": "Been-yahn"
+  },
+  "videos": {
+    "jobseeker": {
+      "title": "Find work in Biñan",
+      "tagline": "Current jobs, clear steps to apply.",
+      "music": "music/easy-lemon.mp3",
+      "musicCredit": "“Easy Lemon” by Kevin MacLeod (incompetech.com), licensed under CC BY 4.0",
+      "scenes": [
+        {
+          "id": "js-intro",
+          "type": "intro",
+          "voice": "Trabaho Biñan. Jobs in Biñan, all in one place."
+        },
+        {
+          "id": "js-home",
+          "type": "clip",
+          "clip": "visitor-home",
+          "url": "/",
+          "headline": "Free. No account needed.",
+          "voice": "Looking for work? Browse current vacancies from local employers, for free, with no account needed."
+        },
+        {
+          "id": "js-search",
+          "type": "clip",
+          "clip": "visitor-search",
+          "url": "/?q=teacher",
+          "headline": "Search by job or company",
+          "voice": "Search by job title or company."
+        },
+        {
+          "id": "js-filters",
+          "type": "clip",
+          "clip": "visitor-filters",
+          "url": "/?type=full_time&education=college_graduate",
+          "headline": "Filter to what fits you",
+          "voice": "Then filter by job type, location, and the education you have.",
+          "zoom": {
+            "mark": "filters",
+            "scale": 1.35
+          }
+        },
+        {
+          "id": "js-job",
+          "type": "clip",
+          "clip": "visitor-job",
+          "url": "/jobs/…/master-teacher-i-elementary",
+          "headline": "Pay, place and deadline, up front",
+          "voice": "Every listing shows where you'll work, the pay, the closing date, and exactly how to apply.",
+          "zoom": {
+            "mark": "facts",
+            "scale": 1.3
+          }
+        },
+        {
+          "id": "js-apply",
+          "type": "clip",
+          "clip": "visitor-apply",
+          "url": "/apply/…/form",
+          "headline": "Apply here with your résumé",
+          "voice": "Some jobs let you apply right here. Add your details, upload your résumé, and get a reference number."
+        },
+        {
+          "id": "js-safety",
+          "type": "clip",
+          "clip": "visitor-safety",
+          "url": "/report/…",
+          "headline": "Never pay to apply",
+          "voice": "And remember: never pay to apply. If a listing asks for fees, report it.",
+          "zoom": {
+            "mark": "warning",
+            "scale": 1.3
+          }
+        },
+        {
+          "id": "js-outro",
+          "type": "outro",
+          "voice": "Find your next job on Trabaho Biñan.",
+          "subtitle": "Find your next job at trabaho.bantaybinan.com"
+        }
+      ],
+      "musicLufs": -15.8
+    },
+    "backoffice": {
+      "title": "Behind the listings",
+      "tagline": "For employers, PESO reviewers and administrators.",
+      "music": "music/inspired.mp3",
+      "musicCredit": "“Inspired” by Kevin MacLeod (incompetech.com), licensed under CC BY 4.0",
+      "scenes": [
+        {
+          "id": "bo-intro",
+          "type": "intro",
+          "voice": "Behind every listing on Trabaho Biñan are simple tools for employers, PESO reviewers, and administrators."
+        },
+        {
+          "id": "bo-ch-employers",
+          "type": "chapter",
+          "label": "Employers",
+          "icon": "building"
+        },
+        {
+          "id": "bo-dashboard",
+          "type": "clip",
+          "clip": "employer-dashboard",
+          "url": "/employer",
+          "headline": "Your own employer dashboard",
+          "voice": "Invited employers post vacancies from their own dashboard."
+        },
+        {
+          "id": "bo-form",
+          "type": "clip",
+          "clip": "employer-form",
+          "url": "/employer/jobs/new",
+          "headline": "Role, pay and how to apply",
+          "voice": "They fill in the role, the pay, and how to apply, including whether to accept résumés right on the site.",
+          "zoom": {
+            "mark": "accepts",
+            "scale": 1.4
+          }
+        },
+        {
+          "id": "bo-submit",
+          "type": "clip",
+          "clip": "employer-submit",
+          "url": "/employer/jobs/…",
+          "headline": "Submitted for review",
+          "voice": "Then submit it. Nothing goes public until PESO checks it."
+        },
+        {
+          "id": "bo-ch-reviewers",
+          "type": "chapter",
+          "label": "PESO reviewers",
+          "icon": "check"
+        },
+        {
+          "id": "bo-overview",
+          "type": "clip",
+          "clip": "reviewer-overview",
+          "url": "/manage",
+          "headline": "Everything that needs attention",
+          "voice": "Reviewers see what needs attention at a glance, starting with the review queue."
+        },
+        {
+          "id": "bo-approve",
+          "type": "clip",
+          "clip": "reviewer-approve",
+          "url": "/manage/jobs/…",
+          "headline": "Check, then publish",
+          "voice": "They check the details, with wording like age or gender limits flagged automatically, then publish in one click."
+        },
+        {
+          "id": "bo-ch-applications",
+          "type": "chapter",
+          "label": "Applications",
+          "icon": "inbox"
+        },
+        {
+          "id": "bo-applications",
+          "type": "clip",
+          "clip": "employer-applications",
+          "url": "/employer/applications",
+          "headline": "A private applications inbox",
+          "voice": "Applications arrive in the employer's inbox. Résumés stay private, every download is recorded, and each applicant's status is tracked."
+        },
+        {
+          "id": "bo-ch-admins",
+          "type": "chapter",
+          "label": "Administrators",
+          "icon": "shield"
+        },
+        {
+          "id": "bo-audit",
+          "type": "clip",
+          "clip": "admin-audit",
+          "url": "/manage/audit?type=job",
+          "headline": "Every change on record",
+          "voice": "Administrators can trace every change in the audit history,"
+        },
+        {
+          "id": "bo-settings",
+          "type": "clip",
+          "clip": "admin-settings",
+          "url": "/manage/settings",
+          "headline": "Access and settings",
+          "voice": "and manage staff access and site settings."
+        },
+        {
+          "id": "bo-outro",
+          "type": "outro",
+          "voice": "Trabaho Biñan. Accurate listings and safe applications, for the people of Biñan.",
+          "subtitle": "Trabaho Biñan: accurate listings and safe applications, for the people of Biñan."
+        }
+      ],
+      "musicLufs": -12.8
+    }
+  },
+  "voiceLufs": -22.3
+}

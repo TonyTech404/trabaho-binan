@@ -1,0 +1,8 @@
+node_modules/
+.cache/
+footage/
+out/
+public/footage/
+public/narration/
+public/music/
+public/logos/
