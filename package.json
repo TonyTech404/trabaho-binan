@@ -16,6 +16,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx --tsconfig tsconfig.cloudflare.json --env-file-if-exists=.env scripts/seed.ts",
     "admin:invite": "tsx --tsconfig tsconfig.cloudflare.json --env-file-if-exists=.env scripts/create-admin-invite.ts",
+    "jobs:import": "tsx --tsconfig tsconfig.cloudflare.json --env-file-if-exists=.env scripts/import-jobs.ts",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

@@ -66,8 +66,7 @@ export function ApplyPanel({ job, open }: { job: ApplyInfo; open: boolean }) {
                 </a>
                 <p className="text-sm text-ink-muted">
                   Opens a page on{" "}
-                  <span className="font-semibold text-ink">{hostname(job.applicationUrl)}</span>,
-                  the employer's site.
+                  <span className="font-semibold text-ink">{hostname(job.applicationUrl)}</span>.
                 </p>
               </div>
             ) : null}

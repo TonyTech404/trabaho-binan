@@ -155,9 +155,34 @@ After that, everything is done in the dashboard:
   person out everywhere.
 - **Revoking access:** Suspend the account. Its sessions end immediately.
   _Sign out everywhere_ ends sessions without suspending.
-- **Settings:** Settings → who runs the site and the contact details shown on
-  the help and privacy pages. Do not describe the site as official unless a
-  partnership is confirmed in writing.
+- **Settings:** Settings → who runs the site (default "PESO Biñan") and the
+  contact details shown on the help and privacy pages.
+
+## Importing vacancies from public sources
+
+`npm run jobs:import` loads researched vacancies from a JSON file in
+`data/imports/` through the normal job services. Each record carries its
+source URL, the date it was retrieved and the evidence it was checked against.
+
+```sh
+# Preview what would happen (no writes)
+DATABASE_URL="$PRODUCTION_APP_URL" npm run jobs:import -- data/imports/<file>.json --dry-run
+# Import (production needs --production)
+DATABASE_URL="$PRODUCTION_APP_URL" npm run jobs:import -- data/imports/<file>.json --production
+```
+
+- A vacancy is **published** only when its source states a future closing date
+  and its text raises no policy flags (age, gender, appearance and similar).
+  Everything else goes to the **review queue** for a PESO reviewer to confirm
+  with the employer first.
+- The actions are recorded under "Listings import", a suspended staff account
+  that cannot sign in, so the audit trail shows they were automated.
+- The description ends with the source, and the application link opens the
+  original announcement. Organizations it creates are **not verified**.
+- Re-running a file skips vacancies already imported from the same source.
+- Only use sources whose terms allow reuse: government notices and employers'
+  own pages. Do not scrape JobStreet, Indeed, LinkedIn, Kalibrr or Facebook.
+  Never import personal contact details.
 
 ## Backups and restoration
 
