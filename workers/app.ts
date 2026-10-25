@@ -1,7 +1,12 @@
 import { createRequestHandler, RouterContextProvider } from "react-router";
 import * as serverBuild from "virtual:react-router/server-build";
 import { appContext, createAppServices, hasSessionCookie } from "~/lib/context.server";
-import { isCacheableRequest, matchPublicCache, storePublicCache } from "~/lib/public-cache.server";
+import {
+  canonicalPublicUrl,
+  isCacheableRequest,
+  matchPublicCache,
+  storePublicCache,
+} from "~/lib/public-cache.server";
 import { bodyLimitResponse, isCrossSiteMutation, withSecurityHeaders } from "~/lib/security.server";
 import { runScheduledTasks } from "~/services/scheduled.server";
 
@@ -41,6 +46,8 @@ export default {
 
     const cacheable = !import.meta.env.DEV && isCacheableRequest(request, authenticated);
     if (cacheable) {
+      const canonical = canonicalPublicUrl(url);
+      if (canonical) return withSecurityHeaders(Response.redirect(canonical, 301), securityOptions);
       const cached = await matchPublicCache(request, services.nonce);
       if (cached) return withSecurityHeaders(cached, securityOptions);
     }

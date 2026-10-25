@@ -43,15 +43,18 @@ export default function Privacy({ loaderData }: Route.ComponentProps) {
           <li>
             Some jobs let you apply here. The site keeps the name, mobile number, email address (if
             you give one), work experience and message you enter, and any files you attach. Photos
-            are made smaller and their location data is removed before they are stored.
+            are made smaller, and their location and camera details are removed before they are
+            stored.
           </li>
           <li>
             Only the employer for that job and PESO Biñan staff can see your application. Your
-            résumé is stored privately and is never shown publicly. Every download is recorded.
+            résumé is stored privately and is never shown publicly. Every view and download is
+            recorded.
           </li>
           <li>
             Your details are used only to consider you for that job. Applications and résumés are
-            deleted automatically about six months after you send them.
+            deleted automatically about six months after you send them. Encrypted backup copies are
+            kept for up to eight weeks more.
           </li>
           <li>
             You can ask for your application to be corrected or deleted sooner. Use the contact
@@ -80,7 +83,12 @@ export default function Privacy({ loaderData }: Route.ComponentProps) {
           </li>
           <li>
             Changes to listings, reviews, invitations and account access are recorded with the
-            person and time, so that mistakes and misuse can be traced.
+            person and time, so that mistakes and misuse can be traced. Sign-ins are recorded with
+            the approximate network and country they came from.
+          </li>
+          <li>
+            Changes employers make to their public company profile are checked by PESO staff before
+            they appear.
           </li>
         </ul>
       </section>

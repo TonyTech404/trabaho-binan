@@ -17,6 +17,36 @@
 const PUBLIC_PATH =
   /^\/(?:|jobs\/[A-Za-z0-9]+(?:\/[a-z0-9-]+)?|employers\/[a-z0-9-]+|help|privacy)$/;
 
+/** The job directory's filters (see parsePublicFilters); other public pages take none. */
+const DIRECTORY_PARAMS = new Set([
+  "q",
+  "city",
+  "type",
+  "setup",
+  "education",
+  "experience",
+  "employer",
+  "sort",
+  "page",
+]);
+
+/**
+ * Public pages ignore query parameters they do not use: tracking tags such as
+ * Facebook's `fbclid`, or random values meant to get past the cache and load
+ * the database. Such requests get the clean address instead (a redirect that
+ * costs no database work), so the cache only ever holds clean pages.
+ */
+export function canonicalPublicUrl(url: URL): string | null {
+  if (!url.search || !PUBLIC_PATH.test(url.pathname)) return null;
+  const allowed = url.pathname === "/" ? DIRECTORY_PARAMS : new Set<string>();
+  const params = [...url.searchParams];
+  const kept = params.filter(([key]) => allowed.has(key));
+  if (kept.length === params.length) return null;
+  const clean = new URL(url.pathname, url);
+  for (const [key, value] of kept) clean.searchParams.append(key, value);
+  return clean.toString();
+}
+
 export const PUBLIC_LIST_TTL_SECONDS = 60;
 export const PUBLIC_PAGE_TTL_SECONDS = 300;
 

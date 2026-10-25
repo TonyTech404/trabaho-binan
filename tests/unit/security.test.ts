@@ -3,6 +3,7 @@ import { isGuessablePassword } from "~/lib/auth-forms.server";
 import { describeError, loggablePath } from "~/lib/log.server";
 import { clientNetwork, coarseNetwork } from "~/lib/rate-limit.server";
 import { bodyLimitResponse } from "~/lib/security.server";
+import { canonicalPublicUrl } from "~/lib/public-cache.server";
 import { safeNextPath } from "~/lib/session.server";
 
 describe("redirect after sign-in", () => {
@@ -109,5 +110,21 @@ describe("request size limits", () => {
     expect(bodyLimitResponse(post("/login", String(300 * 1024)))?.status).toBe(413);
     expect(bodyLimitResponse(post("/login", "120"))).toBeNull();
     expect(bodyLimitResponse(new Request("https://x.test/", { method: "GET" }))).toBeNull();
+  });
+});
+
+describe("clean public addresses", () => {
+  const clean = (path: string) => canonicalPublicUrl(new URL(path, "https://x.test"));
+
+  it("drops parameters public pages do not use", () => {
+    expect(clean("/jobs/k8btdz6c/cashier?fbclid=abc")).toBe("https://x.test/jobs/k8btdz6c/cashier");
+    expect(clean("/?q=teacher&x=random")).toBe("https://x.test/?q=teacher");
+    expect(clean("/help?utm_source=fb")).toBe("https://x.test/help");
+  });
+
+  it("leaves clean addresses and directory filters alone", () => {
+    expect(clean("/?q=teacher&education=college_graduate&page=2")).toBeNull();
+    expect(clean("/jobs/k8btdz6c/cashier")).toBeNull();
+    expect(clean("/manage?anything=1")).toBeNull(); // not a public cached page
   });
 });
