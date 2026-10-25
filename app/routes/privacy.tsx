@@ -38,7 +38,7 @@ export default function Privacy({ loaderData }: Route.ComponentProps) {
         </ul>
       </section>
       <section id="applications">
-        <h2>If you apply with your résumé on this site</h2>
+        <h2>If you apply on this site</h2>
         <ul>
           <li>
             Some jobs let you apply here. The site keeps the name, mobile number, email address (if

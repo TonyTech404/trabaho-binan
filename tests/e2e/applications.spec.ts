@@ -18,7 +18,7 @@ async function apply(
   files: { name: string; mimeType: string; buffer: Buffer }[] = [],
 ) {
   await page.goto(`/jobs/${job.public_id}/${job.slug}`);
-  await page.getByRole("link", { name: "Apply with your résumé" }).click();
+  await page.getByRole("link", { name: "Apply now" }).click();
   await expect(page.getByRole("heading", { name: /^Apply for/ })).toBeVisible();
   await page.getByLabel("Full name").fill(fields.name);
   await page.getByLabel("Mobile number").fill(fields.phone);
@@ -43,7 +43,7 @@ test.describe("applications", () => {
     const visitor = await anonymous(browser);
     const page = await visitor.newPage();
     await page.goto(`/jobs/${job.public_id}/${job.slug}`);
-    await page.getByRole("link", { name: "Apply with your résumé" }).click();
+    await page.getByRole("link", { name: "Apply now" }).click();
     const axe = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
       .analyze();
@@ -188,7 +188,7 @@ test.describe("applications", () => {
     const visitor = await anonymous(browser);
     const page = await visitor.newPage();
     await page.goto(`/jobs/${job.public_id}/${job.slug}`);
-    await expect(page.getByRole("link", { name: "Apply with your résumé" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Apply now" })).toHaveCount(0);
     await page.goto(`/apply/${job.public_id}/form`);
     await expect(page).toHaveURL(new RegExp(`/jobs/${job.public_id}/`));
     await visitor.close();

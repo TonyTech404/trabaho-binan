@@ -59,16 +59,17 @@ export function ApplyPanel({ job, open }: { job: ApplyInfo; open: boolean }) {
 
             {job.acceptsApplications ? (
               <div className="space-y-2">
-                <h3 className="text-lg font-semibold">Apply here with your résumé</h3>
+                <h3 className="text-lg font-semibold">Apply here</h3>
                 <Link
                   to={`/apply/${job.publicId}/form`}
                   className={buttonVariants({ size: "lg", className: "w-full" })}
                 >
                   <FileUp aria-hidden="true" />
-                  Apply with your résumé
+                  Apply now
                 </Link>
                 <p className="text-sm text-ink-muted">
-                  Goes to the employer and PESO Biñan. No account needed.
+                  You only need your name and mobile number; a résumé is optional. Goes to the
+                  employer and PESO Biñan. No account needed.
                 </p>
               </div>
             ) : null}
