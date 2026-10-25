@@ -3,14 +3,14 @@
 Working log for the first release. Update it whenever a coherent piece of work
 lands, so another session can resume accurately.
 
-## Current status (2026-10-24, evening)
+## Current status (2026-10-25)
 
 **Production:** live at https://trabaho.bantaybinan.com.
 
-- Deployed commit `e462ecf` from `main` (PR #1 merged as `3e06e25`).
-- Worker `trabaho-binan`, version `998c6110-2ba8-4f5d-8c7d-4ba091e265f8`.
-- Staging runs the same commit (version `47d70449-3a58-4496-86b5-c3c283f276ce`).
-- Database migrations `0000`–`0002` are applied on staging and production.
+- Deployed commit `caf8fe5` from `main`.
+- Worker `trabaho-binan`, version `11c48286-7cf1-46bc-8be0-9313160f81e7`.
+- Staging runs the same commit (version `3b2575cf-57b2-444a-9336-496b4ac2c533`).
+- Database migrations `0000`–`0004` are applied on staging and production.
 
 **Since the first release:**
 
@@ -37,7 +37,19 @@ lands, so another session can resume accurately.
   their demo jobs are archived and their applications deleted.
 - **Demo videos:** `video/` records and renders narrated demos (jobseekers ~50 s,
   back office ~76 s; desktop and mobile). Rendered files are in `video/out/`
-  (not committed). See `video/README.md`.
+  (not committed). See `video/README.md`. They show the application form as it
+  was on 2026-10-24 (email and a required résumé); re-record to show the
+  changes below.
+- **PESO pilot feedback (2026-10-25):** jobs can name a course or field of
+  study; applicants give a mobile number (required) and may attach up to three
+  files including photos (shrunk, location data removed) or describe their
+  experience instead of a résumé; employers get Call and Text buttons; after a
+  hire, one step closes the job and marks the others not selected; the PESO
+  overview counts hires; applicants check their status at
+  `/application-status`. Verified on staging end to end (photo application,
+  status lookup, employer view, metadata removed, signed-out file request
+  refused; the test application was deleted afterwards) and on production
+  (health, axe on four pages at 390 and 1280 px, status lookup, file route).
 
 **Next for the owner:**
 
@@ -64,11 +76,11 @@ lands, so another session can resume accurately.
   - Restricted database role with append-only history tables.
   - bcrypt in PostgreSQL; fresh sessions on every request.
 - **Tests:**
-  - 81 Vitest unit and integration tests, including the restricted-role and
-    application access tests.
-  - 45 Playwright end-to-end tests on the production build (desktop and
-    mobile), with axe WCAG 2.1 AA scans, including the résumé application
-    journey.
+  - 93 Vitest unit and integration tests, including the restricted-role,
+    application access, photo metadata and status lookup tests.
+  - 46 Playwright end-to-end tests on the production build (desktop and
+    mobile; 2 skipped by design), with axe WCAG 2.1 AA scans, including photo
+    applications, the status check and closing a job after a hire.
   - All pass locally. CI will run them on GitHub.
 - **Visual review:**
   - Done with Playwright MCP at 360, 768 and 1440 px across public pages, the
@@ -108,8 +120,7 @@ The first administrator invitation (for the owner) was created with
 2. Move `.secrets/backups/*` and `.secrets/backup-passphrase` to storage the
    owner controls (separately). Schedule weekly backups.
 3. Decide on Workers Paid (see CPU findings) before wider promotion.
-4. Choose a logo concept; confirm branding, support ownership and costs with
-   PESO (plan §11). Don't claim an official partnership until confirmed.
+4. Confirm support ownership and costs with PESO (plan §11).
 5. Before using real data: name a PESO reviewer and backup; agree the
    verification checklist and listing policy.
 6. Enable GitHub private vulnerability reporting (SECURITY.md relies on it).
