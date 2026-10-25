@@ -1,7 +1,7 @@
 # Security policy
 
-Trabaho Biñan stores staff and employer accounts, unpublished vacancies and
-public reports. Please help keep it safe.
+Trabaho Biñan stores staff and employer accounts, unpublished vacancies,
+jobseekers' applications and public reports. Please help keep it safe.
 
 ## Reporting a vulnerability
 
@@ -30,14 +30,18 @@ link on the job page instead.
 ## Security design (summary)
 
 - Permissions are enforced on the server for every action. Employers can only
-  reach their own organization's records.
-- Accounts are invitation-only. There is no public sign-up.
-- Passwords are hashed with bcrypt. Sessions are read fresh on every request,
-  so suspension takes effect immediately.
+  reach their own organization's records, and suspending an organization cuts
+  off its people at once.
+- Accounts are invitation-only. There is no public sign-up. Sign-in is
+  rate-limited per connection and per account.
+- Listings and employer profile changes are reviewed before they appear.
+- Applicants' files are private, served only after a permission check, and
+  deleted after 180 days. Photos lose their location and camera details.
 - A nonce-based Content Security Policy is used. Cross-site form posts are
   rejected. Job text is rendered as plain text, never as HTML.
-- The application's database role cannot change the schema or alter audit
-  history.
+- The application's database role cannot change the schema or delete
+  history; the audit and job history are append-only.
 - Secrets live in Cloudflare and Neon, never in this repository.
 
-See [docs/architecture.md](docs/architecture.md) for details.
+See [docs/security.md](docs/security.md) for how each of these works, how it
+is tested, and the known limitations.

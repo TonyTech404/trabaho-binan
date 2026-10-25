@@ -49,10 +49,13 @@ _Screenshots use synthetic demo data (marked by the yellow banner)._
 - A review queue that flags wording needing a policy check (age limits, fees,
   gender and similar).
 - Approve, request changes, reject, pause, close, renew and reopen listings,
-  and review employers' proposed changes field by field.
+  and review employers' proposed changes (to listings and to their public
+  company profile) field by field.
 - Verify or suspend employers, invite employer staff, handle reports, see
   listings that are closing soon or need reconfirmation, and export CSV.
 - The overview counts people hired through the site (total and last 30 days).
+- Delete an application (spam, or the applicant's request) with a recorded
+  reason.
 
 **For invited employers**
 
@@ -133,7 +136,8 @@ npm run lint && npm run format:check && npm run typecheck && npm run build
 
 The integration tests cover the security-critical rules: organization
 boundaries, review and publication, revisions, expiry and closure, suspension,
-invitations and password resets. The end-to-end tests drive the real pages on
+invitations and password resets, sign-in limits, and the restricted database
+role. The end-to-end tests drive the real pages on
 desktop and mobile viewports, check keyboard use, and run axe accessibility
 scans. GitHub Actions runs everything on every pull request.
 
@@ -164,12 +168,14 @@ and restoration, maintenance and incident response.
 | `drizzle/`        | Versioned SQL migrations                                       |
 | `scripts/`        | Seed, administrator invitation, backup and restore, SQL grants |
 | `tests/`          | Vitest unit and integration tests; Playwright end-to-end tests |
-| `docs/`           | Plan, architecture, operations, design system, progress log    |
+| `docs/`           | Plan, architecture, security, operations, design, progress log |
 
 ## Contributing and security
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Please report vulnerabilities privately
-as described in [SECURITY.md](SECURITY.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md). How the site protects jobseekers,
+employers and staff is described in [docs/security.md](docs/security.md).
+Please report vulnerabilities privately as described in
+[SECURITY.md](SECURITY.md).
 
 ## License
 

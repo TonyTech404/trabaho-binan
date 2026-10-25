@@ -76,8 +76,10 @@ Migrations are versioned SQL files in `drizzle/`, generated from
    `MIGRATION_DATABASE_URL="$STAGING_OWNER_URL" npm run db:migrate`
 5. **Back up production** (see below), then apply:
    `MIGRATION_DATABASE_URL="$PRODUCTION_OWNER_URL" npm run db:migrate`
-6. Re-apply runtime grants if new tables need special handling (the default
-   privileges cover ordinary new tables):
+6. Re-apply the runtime grants (safe to repeat). New tables get read, insert
+   and update by default but **not delete**; if the application must delete
+   from a new table, add it to the `GRANT DELETE` line in
+   `scripts/sql/grant-app-role.sql` first:
    `psql "$PRODUCTION_OWNER_URL" -v app_role=trabaho_app -f scripts/sql/grant-app-role.sql`
 
 Deploy code that depends on a migration only after the migration has been
@@ -209,8 +211,10 @@ scripts/backup.sh /secure/backups/trabaho
 - Use `BACKUP_GPG_RECIPIENT=<key id>` instead of a passphrase if the people
   who restore hold a GPG private key.
 - Store backups outside this repository, on storage the project owner
-  controls. Keep at least 4 weekly copies. Never upload them anywhere public,
-  including CI artefacts of a public repository.
+  controls. Keep 4 to 8 weekly copies and delete older ones: backups hold
+  applications, and the privacy page promises they are gone about six months
+  after they are sent (plus at most eight weeks in backups). Never upload them
+  anywhere public, including CI artefacts of a public repository.
 - Store the passphrase separately from the backups, in a password manager
   that a second trusted person can access.
 
@@ -242,12 +246,15 @@ imported listings).
 
 - **What applicants give:** full name and a Philippine mobile number
   (required; stored as `+639…`), and optionally an email, a short work
-  history, a message, and up to three files (PDF, DOCX, DOC, JPG or PNG; 5 MB
-  each, 10 MB in total). A résumé is not required.
+  history, a message, and up to three files (PDF, DOCX, JPG or PNG; 5 MB
+  each, 10 MB in total). A résumé is not required. Old `.doc` files are
+  refused because they can carry macros.
 - **Photos:** the browser shrinks photos before upload (longest side 2000 px).
-  The server then removes EXIF/XMP/IPTC and comments from JPEGs (GPS location,
-  camera details; only the rotation flag is kept) and text, time and EXIF
-  chunks from PNGs. Files are checked by their contents, not their names.
+  The server then rebuilds each JPEG from only what is needed to show it
+  (dropping EXIF/XMP/IPTC, comments, other application blocks and anything
+  after the image; only the rotation flag is kept) and removes text, time
+  and EXIF chunks from PNGs. Files are checked by their contents, not their
+  names.
 - **Storage:** files are kept in private R2 buckets, `trabaho-binan-resumes`
   (production) and `trabaho-binan-resumes-staging`, under
   `applications/<job id>/<application id>/<n>`. Public access (r2.dev and
@@ -255,9 +262,10 @@ imported listings).
   simulated bucket on disk.
 - **Access:** only members of the job's organization and staff (reviewers,
   admins) can see an application. Files are streamed through
-  `/applications/:applicationId/files/:fileId` after a permission check (photos
-  and PDFs can be viewed inline; everything else downloads), and every access
-  is recorded in the audit history.
+  `/applications/:applicationId/files/:fileId` after a permission check
+  (photos can be viewed inline; documents always download), and every view
+  and download is recorded in the audit history (by file number, never the
+  file name).
 - **Status check:** applicants look up their application at
   `/application-status` with the reference (TB-…) and the mobile number or
   email they gave. It shows the job, the employer and the status, never the
@@ -269,14 +277,15 @@ imported listings).
   who_ lists them.
 - The application and status forms are rate-limited per connection.
 - **Retention:** the hourly cron deletes applications and their files 180 days
-  after they were sent (`APPLICATION_RETENTION_DAYS`). Staging has no cron, so
-  its applications are not purged automatically.
-- **Deletion requests:** find the application by its reference in
-  Applications. List its file keys
-  (`SELECT key FROM application_files WHERE application_id = '<id>'`), delete
-  each from R2 (`npx wrangler r2 object delete trabaho-binan-resumes/<key> --remote`),
-  then delete the application row (its file rows go with it). Record the
-  request in your incident or request log.
+  after they were sent (`APPLICATION_RETENTION_DAYS`). As a backstop, both
+  buckets have an R2 lifecycle rule (`expire-applications`) that deletes
+  objects under `applications/` after 190 days. Staging has no cron, so its
+  database rows are not purged automatically.
+- **Deletion requests and spam:** open the application (find it by its
+  reference in Applications) and use _Delete this application_ at the bottom,
+  with the reason (for example "applicant asked on 25 October"). The
+  application and its files are deleted; the audit history keeps only the
+  reference, the job and your reason. Staff only.
 - R2 Free covers 10 GB of storage and 1 million writes per month; application
   files are small, but check usage monthly with the other quotas.
 
@@ -298,11 +307,12 @@ Monthly:
 
 ## Incident playbook
 
-| Situation                             | First steps                                                                                                                    |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Listing may be a scam or charges fees | Pause it from Reports or the job page (immediate), contact the employer, then close or resume. Suspend the employer if needed. |
-| Staff or employer account compromised | Suspend the account (ends sessions), check Audit history, issue a reset link to the verified owner, reactivate.                |
-| Secret leaked (`BETTER_AUTH_SECRET`)  | `wrangler secret put` a new value (signs everyone out).                                                                        |
-| Database password leaked              | Change the role password in Neon (`ALTER ROLE … PASSWORD`), update Hyperdrive with `wrangler hyperdrive update`.               |
-| Bad data change                       | Use Neon's restore window (6 h) or restore the latest backup into a new database and compare.                                  |
-| Site down or slow                     | Check `/healthz`, Workers Observability errors, Neon status and usage; quotas reset at 00:00 UTC (Workers, Hyperdrive).        |
+| Situation                              | First steps                                                                                                                                                                                                                                                    |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Listing may be a scam or charges fees  | Pause it from Reports or the job page (immediate: the public page then shows only the title and a notice), contact the employer, then close or resume. Suspend the employer if needed: its people lose access at once and its unused invitations stop working. |
+| Staff or employer account compromised  | Suspend the account (ends sessions and revokes the unused links it created), check Audit history (sign-ins show the network and country), issue a reset link to the verified owner, reactivate.                                                                |
+| Someone can't sign in after many tries | After 10 failed attempts in 15 minutes an account pauses for the rest of that window. Ask them to wait, or issue a reset link. Many failures for staff accounts in Audit history may mean an attack.                                                           |
+| Secret leaked (`BETTER_AUTH_SECRET`)   | `wrangler secret put` a new value (signs everyone out).                                                                                                                                                                                                        |
+| Database password leaked               | Change the role password in Neon (`ALTER ROLE … PASSWORD`), update Hyperdrive with `wrangler hyperdrive update`.                                                                                                                                               |
+| Bad data change                        | Use Neon's restore window (6 h) or restore the latest backup into a new database and compare.                                                                                                                                                                  |
+| Site down or slow                      | Check `/healthz`, Workers Observability errors, Neon status and usage; quotas reset at 00:00 UTC (Workers, Hyperdrive).                                                                                                                                        |

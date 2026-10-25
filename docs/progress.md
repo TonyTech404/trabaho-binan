@@ -29,10 +29,8 @@ lands, so another session can resume accurately.
   organization and staff. 180-day retention via the cron. See
   `docs/operations.md` → _Applications and résumés_.
 
-- **Accounts:** administrator invitations for Anthony
-  (hernandezmarkanthony61@gmail.com), Titus (titus@bantaybinan.com) and Barts
-  (barts@bantaybinan.com) are in `.secrets/invite-{anthony,titus,barts}.txt`
-  (single use, expire 31 October). Demo accounts used for the videos
+- **Accounts:** administrator invitations for the project owner and two PESO
+  partners are in `.secrets/invite-*.txt` (single use, expire 31 October). Demo accounts used for the videos
   (`demo-*@example.com`) and "Demo Bakeshop (not a real company)" are suspended;
   their demo jobs are archived and their applications deleted.
 - **Demo videos:** `video/` records and renders narrated demos (jobseekers ~57 s,
@@ -53,13 +51,28 @@ lands, so another session can resume accurately.
   refused; the test application was deleted afterwards) and on production
   (health, axe on four pages at 390 and 1280 px, status lookup, file route).
 
+- **Pre-launch security review (2026-10-25):** four independent reviews
+  (accounts and sign-in, permissions, public pages and uploads,
+  infrastructure) found no critical or high issues. Every medium and low
+  finding was fixed, tested and deployed the same day; the staging owner
+  password was reset (it had been copied from production), the runtime role
+  lost DELETE except on sessions, tokens and applications, and both R2
+  buckets got a 190-day expiry rule on `applications/`. What was found, how
+  the site is secured, and the accepted risks are in `docs/security.md`.
+
 **Next for the owner:**
 
-1. Accept the administrator invitation (link in
-   `.secrets/admin-invite-2026-10-24T09-21-15-245Z.txt`, expires 31 October).
+1. Accept your administrator invitation, then revoke any unused ones in
+   _Users_ (there are several `.secrets/*invite*.txt` files; each unused link
+   gives administrator access to whoever opens it until 31 October).
 2. Reconfirm the imported listings with employers (Overview → _Needs
    reconfirmation_), and add new vacancies or employers from the dashboard.
 3. Resolve the GitHub billing lock so CI runs.
+4. In the Cloudflare dashboard for `bantaybinan.com`, add a rate limiting rule
+   for `trabaho.bantaybinan.com` (the Free plan includes one), so a flood of
+   requests cannot use up the daily free quotas.
+5. Move `.secrets/backups/*` and `.secrets/backup-passphrase` to separate
+   storage the owner controls.
 
 ### Done
 
