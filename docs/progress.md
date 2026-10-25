@@ -7,10 +7,11 @@ lands, so another session can resume accurately.
 
 **Production:** live at https://trabaho.bantaybinan.com.
 
-- Deployed commit `caf8fe5` from `main`.
-- Worker `trabaho-binan`, version `11c48286-7cf1-46bc-8be0-9313160f81e7`.
-- Staging runs the same commit (version `3b2575cf-57b2-444a-9336-496b4ac2c533`).
-- Database migrations `0000`–`0004` are applied on staging and production.
+- Deployed commit `ac6b166` from `main`.
+- Worker `trabaho-binan`, version `c48fdd90-a11c-486b-951d-c0b75978df4f`.
+- Staging runs the same commit (version `ec4b7146-5190-45c2-bf8a-d21bc5ef5f6f`).
+- Database migrations `0000`–`0005` and the current `grant-app-role.sql` are
+  applied on staging and production.
 
 **Since the first release:**
 
@@ -91,8 +92,9 @@ lands, so another session can resume accurately.
   - Restricted database role with append-only history tables.
   - bcrypt in PostgreSQL; fresh sessions on every request.
 - **Tests:**
-  - 93 Vitest unit and integration tests, including the restricted-role,
-    application access, photo metadata and status lookup tests.
+  - 123 Vitest unit and integration tests, including the restricted-role,
+    application access, photo metadata, status lookup and security-review
+    tests (`tests/integration/security.test.ts`, `tests/unit/security.test.ts`).
   - 46 Playwright end-to-end tests on the production build (desktop and
     mobile; 2 skipped by design), with axe WCAG 2.1 AA scans, including photo
     applications, the status check and closing a job after a hire.
