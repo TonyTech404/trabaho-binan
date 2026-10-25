@@ -45,15 +45,17 @@ export async function loader({ params, context }: Route.LoaderArgs) {
 
 export async function action({ params, request, context }: Route.ActionArgs) {
   const services = getServices(context);
-  const form = await request.formData();
-  // Hidden from people; bots that fill every field are quietly ignored.
-  if (String(form.get("website") ?? "")) return { sent: true as const, reference: "" };
-  if (!(await withinRateLimit(services.env.FORM_LIMITER, request, "apply"))) {
+  // Per connection before the form is read (generous: job fairs share one), then
+  // per phone number once the form is valid, so mistakes do not count.
+  if (!(await withinRateLimit(services.env.APPLY_LIMITER, request, "apply"))) {
     return data(
       { errors: { form: "Too many attempts from this connection. Wait a minute and try again." } },
       { status: 429 },
     );
   }
+  const form = await request.formData();
+  // Hidden from people; bots that fill every field are quietly ignored.
+  if (String(form.get("website") ?? "")) return { sent: true as const, reference: "" };
 
   const parsed = applicationInputSchema.safeParse(formToObject(form));
   const files = form.getAll("files").filter((f): f is File => f instanceof File && f.size > 0);
@@ -63,6 +65,14 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     errors.files = "Each file must be 5 MB or smaller.";
   if (!parsed.success || Object.keys(errors).length > 0) {
     return data({ errors }, { status: 400 });
+  }
+  if (
+    !(await withinRateLimit(services.env.FORM_LIMITER, request, "apply-phone", parsed.data.phone))
+  ) {
+    return data(
+      { errors: { form: "Too many applications from this number. Wait a minute and try again." } },
+      { status: 429 },
+    );
   }
 
   try {
@@ -231,7 +241,7 @@ export default function ApplyForm({ loaderData, actionData }: Route.ComponentPro
           name="files"
           label="Résumé or photos"
           optional
-          hint="Up to 3 files: a PDF or Word résumé, or clear photos of your papers (JPG or PNG). Photos are made smaller and their location data is removed."
+          hint="Up to 3 files: a PDF or Word (.docx) résumé, or clear photos of your papers (JPG or PNG). Photos are made smaller and their location data is removed."
           error={errors?.files}
         >
           {(p) => (
@@ -242,7 +252,7 @@ export default function ApplyForm({ loaderData, actionData }: Route.ComponentPro
                   {...p}
                   type="file"
                   multiple
-                  accept="image/*,.pdf,.docx,.doc,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  accept="image/*,.pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                   onChange={(e) => onFiles(e.currentTarget)}
                   className="min-w-0 flex-1 text-base file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-md file:border file:border-line-strong file:bg-surface file:px-3 file:font-semibold file:text-ink hover:file:border-ink"
                 />

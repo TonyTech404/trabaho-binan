@@ -104,7 +104,9 @@ export async function action({ request, params, context }: Route.ActionArgs) {
     let notice = intent;
     switch (intent) {
       case "approve":
-        job = await approveJob(db, viewer, jobId, reason);
+        job = await approveJob(db, viewer, jobId, reason, new Date(), {
+          expectedUpdatedAt: String(form.get("version") ?? ""),
+        });
         notice = "approved";
         break;
       case "request_changes":
@@ -178,6 +180,8 @@ export async function action({ request, params, context }: Route.ActionArgs) {
           String(form.get("revisionId") ?? ""),
           decision,
           reason,
+          new Date(),
+          String(form.get("submittedAt") ?? ""),
         );
         job = result.job;
         notice =
@@ -209,6 +213,7 @@ export default function ManageJob({ loaderData, actionData }: Route.ComponentPro
     revisionFlags,
     metrics,
     lastConfirmedByName,
+    createdByStaff,
   } = loaderData;
   const s = job.status;
   const today = manilaDateString();
@@ -304,8 +309,14 @@ export default function ManageJob({ loaderData, actionData }: Route.ComponentPro
                     : null}
             </p>
             <div className="mt-3 flex flex-wrap items-start gap-2">
-              {["draft", "pending_review", "changes_requested"].includes(s) ? (
-                <ActionForm intent="approve" label="Approve and publish" variant="default" />
+              {["pending_review", "changes_requested"].includes(s) ||
+              (s === "draft" && createdByStaff) ? (
+                <ActionForm
+                  intent="approve"
+                  label="Approve and publish"
+                  variant="default"
+                  hidden={{ version: new Date(job.updatedAt).toISOString() }}
+                />
               ) : null}
               {s === "pending_review" ? (
                 <ActionForm
@@ -425,7 +436,12 @@ export default function ManageJob({ loaderData, actionData }: Route.ComponentPro
                     intent="revision_approve"
                     label="Approve changes"
                     variant="default"
-                    hidden={{ revisionId: openRevision.id }}
+                    hidden={{
+                      revisionId: openRevision.id,
+                      submittedAt: openRevision.submittedAt
+                        ? new Date(openRevision.submittedAt).toISOString()
+                        : "",
+                    }}
                   />
                   <ActionForm
                     intent="revision_request_changes"

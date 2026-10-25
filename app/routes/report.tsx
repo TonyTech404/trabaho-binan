@@ -9,6 +9,7 @@ import { getServices } from "~/lib/context.server";
 import { REPORT_REASONS } from "~/lib/labels";
 import { withinRateLimit } from "~/lib/rate-limit.server";
 import { fieldErrors, formToObject, type FieldErrors } from "~/lib/validation";
+import { serviceErrorResult } from "~/lib/route-helpers.server";
 import { getPublicJob } from "~/services/public-jobs.server";
 import { createReport, reportInputSchema } from "~/services/reports.server";
 import type { Route } from "./+types/report";
@@ -30,9 +31,6 @@ export async function loader({ params, context }: Route.LoaderArgs) {
 
 export async function action({ params, request, context }: Route.ActionArgs) {
   const services = getServices(context);
-  const form = await request.formData();
-  // Hidden from people; bots that fill every field are quietly ignored.
-  if (String(form.get("website") ?? "")) return { sent: true };
   if (!(await withinRateLimit(services.env.FORM_LIMITER, request, "report"))) {
     return data(
       {
@@ -43,10 +41,16 @@ export async function action({ params, request, context }: Route.ActionArgs) {
       { status: 429 },
     );
   }
+  const form = await request.formData();
+  // Hidden from people; bots that fill every field are quietly ignored.
+  if (String(form.get("website") ?? "")) return { sent: true };
   const parsed = reportInputSchema.safeParse(formToObject(form));
   if (!parsed.success) return data({ errors: fieldErrors(parsed.error) }, { status: 400 });
-  const db = await services.db();
-  await createReport(db, params.publicId, parsed.data);
+  try {
+    await createReport(await services.db(), params.publicId, parsed.data);
+  } catch (error) {
+    return serviceErrorResult(error);
+  }
   return { sent: true };
 }
 

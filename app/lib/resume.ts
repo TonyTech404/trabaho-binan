@@ -15,7 +15,6 @@ export const FILE_TYPES = {
     extension: "docx",
     image: false,
   },
-  doc: { contentType: "application/msword", extension: "doc", image: false },
   jpeg: { contentType: "image/jpeg", extension: "jpg", image: true },
   png: { contentType: "image/png", extension: "png", image: true },
 } as const;
@@ -33,9 +32,8 @@ export function detectFileKind(bytes: Uint8Array, filename: string): FileKind | 
   if (startsWith(bytes, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) return "png";
   // DOCX files are ZIP archives; require the extension too, since many formats are ZIPs.
   if (startsWith(bytes, [0x50, 0x4b, 0x03, 0x04]) && ext === "docx") return "docx";
-  if (startsWith(bytes, [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]) && ext === "doc") {
-    return "doc";
-  }
+  // Old .doc files are not accepted: they can carry macros, and every current
+  // word processor saves .docx (which cannot run them).
   return null;
 }
 
@@ -113,26 +111,43 @@ function orientationApp1(orientation: number) {
   return new Uint8Array([0xff, 0xe1, length >> 8, length & 0xff, ...payload]);
 }
 
+const ICC_PROFILE = [0x49, 0x43, 0x43, 0x5f, 0x50, 0x52, 0x4f, 0x46, 0x49, 0x4c, 0x45, 0x00];
+
+/** Application segments needed to show the photo: JFIF, colour profile, Adobe colour info. */
+function keepAppSegment(marker: number, payload: Uint8Array) {
+  return (
+    marker === 0xe0 || marker === 0xee || (marker === 0xe2 && startsWith(payload, ICC_PROFILE))
+  );
+}
+
 /**
- * Removes EXIF/XMP (APP1), IPTC (APP13) and comments from a JPEG, keeping the
- * image data and colour profile. Returns null if the file is not well formed.
+ * Rebuilds a JPEG from only what is needed to show it: image data, tables,
+ * JFIF/Adobe headers and the colour profile, plus a minimal rotation flag.
+ * Everything else goes: EXIF and XMP (GPS, camera, dates), IPTC, comments,
+ * MPF and other application blocks wherever they appear (also between the
+ * scans of progressive photos), and anything after the end-of-image marker
+ * (motion-photo video, extra images). Returns null if the file is malformed.
  */
 export function stripJpegMetadata(bytes: Uint8Array): Uint8Array | null {
   if (!startsWith(bytes, [0xff, 0xd8])) return null;
   const kept: Uint8Array[] = [];
   let orientation: number | null = null;
+  let sawScan = false;
   let i = 2;
-  while (i + 4 <= bytes.byteLength) {
+  for (;;) {
+    if (i + 1 >= bytes.byteLength) {
+      // Some encoders omit the end marker; accept that only after image data.
+      if (!sawScan) return null;
+      break;
+    }
     if (bytes[i] !== 0xff) return null;
     const marker = bytes[i + 1];
     if (marker === 0xff) {
       i += 1; // fill byte
       continue;
     }
-    if (marker === 0xda || marker === 0xd9) {
-      // Start of scan (or end of image): the rest is image data, kept as is.
-      kept.push(bytes.subarray(i));
-      i = bytes.byteLength;
+    if (marker === 0xd9) {
+      kept.push(bytes.subarray(i, i + 2)); // end of image; nothing after it is kept
       break;
     }
     if ((marker >= 0xd0 && marker <= 0xd7) || marker === 0x01) {
@@ -140,13 +155,38 @@ export function stripJpegMetadata(bytes: Uint8Array): Uint8Array | null {
       i += 2;
       continue;
     }
+    if (i + 4 > bytes.byteLength) return null;
     const end = i + 2 + ((bytes[i + 2] << 8) | bytes[i + 3]);
-    if (end > bytes.byteLength) return null;
-    if (marker === 0xe1) orientation ??= exifOrientation(bytes.subarray(i + 4, end));
-    else if (marker !== 0xed && marker !== 0xfe) kept.push(bytes.subarray(i, end));
+    if (end < i + 4 || end > bytes.byteLength) return null;
+    const payload = bytes.subarray(i + 4, end);
+    if (marker === 0xda) {
+      // Start of scan: keep its header and the compressed data, which runs to
+      // the next marker that is not a stuffed 0xFF00 or a restart marker.
+      sawScan = true;
+      let j = end;
+      for (;;) {
+        j = bytes.indexOf(0xff, j);
+        if (j === -1 || j + 1 >= bytes.byteLength) {
+          j = bytes.byteLength;
+          break;
+        }
+        const next = bytes[j + 1];
+        if (next === 0x00 || (next >= 0xd0 && next <= 0xd7)) j += 2;
+        else if (next === 0xff) j += 1;
+        else break;
+      }
+      kept.push(bytes.subarray(i, j));
+      i = j;
+      continue;
+    }
+    if (marker >= 0xe0 && marker <= 0xef) {
+      if (marker === 0xe1) orientation ??= exifOrientation(payload);
+      else if (keepAppSegment(marker, payload)) kept.push(bytes.subarray(i, end));
+    } else if (marker !== 0xfe) {
+      kept.push(bytes.subarray(i, end)); // tables, frame headers; comments (0xFE) are dropped
+    }
     i = end;
   }
-  if (i < bytes.byteLength) return null;
   const head = [bytes.subarray(0, 2)];
   if (orientation && orientation !== 1) head.push(orientationApp1(orientation));
   return concat([...head, ...kept]);
@@ -183,7 +223,7 @@ export function checkFile(bytes: Uint8Array, filename: string): FileCheck {
   if (!kind) {
     return {
       ok: false,
-      error: "Attach a PDF or Word file (.pdf, .docx or .doc) or a photo (JPG or PNG).",
+      error: "Attach a PDF or Word file (.pdf or .docx) or a photo (JPG or PNG).",
     };
   }
   const clean =

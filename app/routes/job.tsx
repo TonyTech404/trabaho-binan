@@ -37,7 +37,7 @@ import {
   publicCacheControl,
 } from "~/lib/public-cache.server";
 import { describeAge, formatDate, formatLongDate } from "~/lib/time";
-import { getPublicJob } from "~/services/public-jobs.server";
+import { getPublicJob, jobPageView } from "~/services/public-jobs.server";
 import type { Route } from "./+types/job";
 
 export async function loader({ params, context }: Route.LoaderArgs) {
@@ -62,7 +62,7 @@ export async function loader({ params, context }: Route.LoaderArgs) {
       : publicCacheControl(PUBLIC_PAGE_TTL_SECONDS);
 
   return data(
-    { ...result, canonicalUrl: `${services.baseUrl}${canonicalPath}` },
+    { ...jobPageView(result), canonicalUrl: `${services.baseUrl}${canonicalPath}` },
     { headers: { "Cache-Control": cacheControl } },
   );
 }
@@ -285,35 +285,39 @@ export default function JobPage({ loaderData }: Route.ComponentProps) {
             </div>
           </section>
 
-          <section aria-labelledby="about-heading" className="space-y-3">
-            <h2 id="about-heading" className="text-2xl font-bold">
-              About the job
-            </h2>
-            <JobText text={job.description} />
-          </section>
+          {state === "paused" ? null : (
+            <>
+              <section aria-labelledby="about-heading" className="space-y-3">
+                <h2 id="about-heading" className="text-2xl font-bold">
+                  About the job
+                </h2>
+                <JobText text={job.description} />
+              </section>
 
-          <section aria-labelledby="qual-heading" className="space-y-3">
-            <h2 id="qual-heading" className="text-2xl font-bold">
-              Qualifications
-            </h2>
-            <ul className="prose-job">
-              <li>
-                <span className="font-semibold">Education:</span>{" "}
-                {label(EDUCATION_LEVELS, job.educationLevel)}
-                {job.fieldOfStudy ? ` (${job.fieldOfStudy})` : ""}
-              </li>
-              <li>
-                <span className="font-semibold">Experience:</span>{" "}
-                {label(EXPERIENCE_LEVELS, job.experienceLevel)}
-              </li>
-              {job.skills ? (
-                <li>
-                  <span className="font-semibold">Skills:</span> {job.skills}
-                </li>
-              ) : null}
-            </ul>
-            <JobText text={job.qualifications} />
-          </section>
+              <section aria-labelledby="qual-heading" className="space-y-3">
+                <h2 id="qual-heading" className="text-2xl font-bold">
+                  Qualifications
+                </h2>
+                <ul className="prose-job">
+                  <li>
+                    <span className="font-semibold">Education:</span>{" "}
+                    {label(EDUCATION_LEVELS, job.educationLevel)}
+                    {job.fieldOfStudy ? ` (${job.fieldOfStudy})` : ""}
+                  </li>
+                  <li>
+                    <span className="font-semibold">Experience:</span>{" "}
+                    {label(EXPERIENCE_LEVELS, job.experienceLevel)}
+                  </li>
+                  {job.skills ? (
+                    <li>
+                      <span className="font-semibold">Skills:</span> {job.skills}
+                    </li>
+                  ) : null}
+                </ul>
+                <JobText text={job.qualifications} />
+              </section>
+            </>
+          )}
         </div>
 
         <aside

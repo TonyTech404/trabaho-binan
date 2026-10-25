@@ -18,16 +18,62 @@ export const newPasswordSchema = z
     message: "The passwords do not match.",
   });
 
+/**
+ * Words that make a password easy to guess however many digits or symbols
+ * follow them: the commonest passwords, and this site's own names.
+ */
+const GUESSABLE_WORDS = new Set([
+  "password",
+  "passw0rd",
+  "qwerty",
+  "qwertyuiop",
+  "asdfghjkl",
+  "iloveyou",
+  "welcome",
+  "admin",
+  "administrator",
+  "letmein",
+  "changeme",
+  "abcdefghij",
+  "trabaho",
+  "trabahobinan",
+  "bantaybinan",
+  "binan",
+  "peso",
+  "pesobinan",
+  "philippines",
+  "pilipinas",
+  "mahalkita",
+]);
+
+/** True for passwords an attacker would try first. */
+export function isGuessablePassword(password: string) {
+  const plain = password
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "");
+  if (/^(.)\1+$/.test(plain)) return true; // "aaaaaaaaaa"
+  if ("01234567890123456789".includes(plain) || "98765432109876543210".includes(plain)) return true;
+  const word = plain.replace(/[^a-z0-9]+/g, "").replace(/\d+$/, "");
+  return GUESSABLE_WORDS.has(word) || /^\d+$/.test(plain);
+}
+
 export function parseNewPassword(form: FormData, extra?: { email?: string | null }) {
   const result = newPasswordSchema.safeParse({
     password: String(form.get("password") ?? ""),
     confirmPassword: String(form.get("confirmPassword") ?? ""),
   });
   if (!result.success) return { errors: fieldErrors(result.error) as FieldErrors };
-  if (
-    extra?.email &&
-    result.data.password.toLowerCase().includes(extra.email.split("@")[0].toLowerCase())
-  ) {
+  if (isGuessablePassword(result.data.password)) {
+    return {
+      errors: {
+        password: "This password is too easy to guess. Try a few unrelated words together.",
+      } as FieldErrors,
+    };
+  }
+  // Short address names ("hr@…") would rule out too many ordinary passwords.
+  const localPart = extra?.email?.split("@")[0].toLowerCase() ?? "";
+  if (localPart.length >= 4 && result.data.password.toLowerCase().includes(localPart)) {
     return {
       errors: { password: "Do not use your email address in your password." } as FieldErrors,
     };

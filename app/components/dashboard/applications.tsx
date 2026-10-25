@@ -158,8 +158,8 @@ function Files({ data }: { data: ApplicationDetailData }) {
       ) : (
         <ul className="space-y-4">
           {files.map((f) => {
+            // Photos open in the browser; documents always download.
             const image = f.contentType.startsWith("image/");
-            const viewable = image || f.contentType === "application/pdf";
             return (
               <li key={f.id} className="space-y-2">
                 {image ? (
@@ -182,7 +182,7 @@ function Files({ data }: { data: ApplicationDetailData }) {
                   <span className="text-sm text-ink-muted">({fileSize(f.size)})</span>
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {viewable ? (
+                  {image ? (
                     <a
                       href={url(f.id, true)}
                       target="_blank"

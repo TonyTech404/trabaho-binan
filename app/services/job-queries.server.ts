@@ -8,6 +8,7 @@ import {
   gt,
   ilike,
   inArray,
+  isNotNull,
   lt,
   lte,
   or,
@@ -24,7 +25,7 @@ import {
   users,
   type JobStatus,
 } from "~/db/schema";
-import { isStaff, NotFoundError, requireStaff, type Actor } from "./common.server";
+import { isStaff, isUuid, NotFoundError, requireStaff, type Actor } from "./common.server";
 
 import { EXPIRING_WITHIN_DAYS, RECONFIRM_AFTER_DAYS } from "~/lib/constants";
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -33,15 +34,18 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export async function getJobForActor(db: Database, actor: Actor, jobId: string) {
   if (!/^[0-9a-f-]{36}$/i.test(jobId)) throw new NotFoundError("Job not found.");
   const confirmedBy = aliasedTable(users, "confirmed_by");
+  const creator = aliasedTable(users, "creator");
   const [row] = await db
     .select({
       job: jobs,
       organization: organizations,
       lastConfirmedByName: confirmedBy.name,
+      createdByStaff: sql<boolean>`coalesce(${creator.role} in ('admin', 'reviewer'), false)`,
     })
     .from(jobs)
     .innerJoin(organizations, eq(organizations.id, jobs.organizationId))
     .leftJoin(confirmedBy, eq(confirmedBy.id, jobs.lastConfirmedById))
+    .leftJoin(creator, eq(creator.id, jobs.createdById))
     .where(eq(jobs.id, jobId))
     .limit(1);
   // Same response for "missing" and "belongs to another organization".
@@ -174,7 +178,7 @@ export async function listJobsForOrganization(db: Database, actor: Actor) {
 
 export async function listReviewQueue(db: Database, actor: Actor) {
   requireStaff(actor);
-  const [pendingJobs, pendingRevisions] = await Promise.all([
+  const [pendingJobs, pendingRevisions, pendingProfiles] = await Promise.all([
     db
       .select({
         id: jobs.id,
@@ -209,8 +213,19 @@ export async function listReviewQueue(db: Database, actor: Actor) {
       .innerJoin(organizations, eq(organizations.id, jobs.organizationId))
       .where(eq(jobRevisions.status, "pending_review"))
       .orderBy(asc(jobRevisions.submittedAt)),
+    db
+      .select({
+        id: organizations.id,
+        submittedAt: organizations.pendingProfileSubmittedAt,
+        pendingProfile: organizations.pendingProfile,
+        organizationName: organizations.name,
+        organizationStatus: organizations.verificationStatus,
+      })
+      .from(organizations)
+      .where(isNotNull(organizations.pendingProfileSubmittedAt))
+      .orderBy(asc(organizations.pendingProfileSubmittedAt)),
   ]);
-  return { pendingJobs, pendingRevisions };
+  return { pendingJobs, pendingRevisions, pendingProfiles };
 }
 
 export async function getStaffOverview(db: Database, actor: Actor, now = new Date()) {
@@ -224,6 +239,7 @@ export async function getStaffOverview(db: Database, actor: Actor, now = new Dat
       .select({
         pendingJobs: sql<number>`(select count(*)::int from ${jobs} where ${jobs.status} = 'pending_review')`,
         pendingRevisions: sql<number>`(select count(*)::int from ${jobRevisions} where ${jobRevisions.status} = 'pending_review')`,
+        pendingProfiles: sql<number>`(select count(*)::int from ${organizations} where ${organizations.pendingProfileSubmittedAt} is not null)`,
         openReports: sql<number>`(select count(*)::int from ${listingReports} where ${listingReports.status} = 'open')`,
         liveJobs: sql<number>`(select count(*)::int from ${jobs} where ${jobs.status} = 'published' and ${jobs.deadlineAt} > ${now})`,
         pausedJobs: sql<number>`(select count(*)::int from ${jobs} where ${jobs.status} = 'paused')`,
@@ -312,6 +328,7 @@ export async function listOrganizationJobsForStaff(
   organizationId: string,
 ) {
   requireStaff(actor);
+  if (!isUuid(organizationId)) return [];
   return db
     .select(listColumns)
     .from(jobs)

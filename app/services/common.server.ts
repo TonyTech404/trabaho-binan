@@ -55,6 +55,13 @@ export class InputError extends ServiceError {
   }
 }
 
+/**
+ * Ids from URLs and forms are checked before they reach a query, so a
+ * malformed id is "not found" rather than a database error.
+ */
+export const isUuid = (value: string) =>
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+
 export function requireStaff(actor: Actor) {
   if (!isStaff(actor)) throw new ForbiddenError();
 }

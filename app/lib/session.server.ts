@@ -49,11 +49,19 @@ async function loadViewer(
   if (role === "employer") {
     const db = await services.db();
     const [membership] = await db
-      .select({ id: organizations.id, name: organizations.name, slug: organizations.slug })
+      .select({
+        id: organizations.id,
+        name: organizations.name,
+        slug: organizations.slug,
+        status: organizations.verificationStatus,
+      })
       .from(organizationMembers)
       .innerJoin(organizations, eq(organizations.id, organizationMembers.organizationId))
       .where(eq(organizationMembers.userId, user.id))
       .limit(1);
+    // A suspended organization's people lose access to everything, including
+    // applicants' details, until a reviewer lifts the suspension.
+    if (membership?.status === "suspended") return null;
     organizationId = membership?.id ?? null;
     organizationName = membership?.name ?? null;
     organizationSlug = membership?.slug ?? null;
@@ -104,10 +112,25 @@ export function dashboardPathFor(role: UserRole) {
   return role === "employer" ? "/employer" : "/manage";
 }
 
-/** Only allow same-site relative redirects after sign-in. */
+/**
+ * Only allow same-site relative redirects after sign-in. Browsers ignore tabs
+ * and newlines in URLs and treat "\\" like "/", so anything that could turn
+ * "/…" into "//other.site" is refused.
+ */
 export function safeNextPath(value: string | null | undefined, fallback: string) {
-  if (!value || !value.startsWith("/") || value.startsWith("//") || value.startsWith("/\\")) {
+  // Backslashes, whitespace and control characters (code points below 0x20, and 0x7f).
+  const unsafe = [...(value ?? "")].some(
+    (c) => c === "\\" || /\s/.test(c) || c.charCodeAt(0) < 0x20 || c.charCodeAt(0) === 0x7f,
+  );
+  if (!value || !value.startsWith("/") || unsafe) {
     return fallback;
   }
-  return value;
+  const base = "https://trabaho.invalid";
+  try {
+    const url = new URL(value, base);
+    if (url.origin !== base) return fallback;
+    return url.pathname + url.search + url.hash;
+  } catch {
+    return fallback;
+  }
 }

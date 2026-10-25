@@ -18,12 +18,17 @@ export const meta = () => [
   { name: "robots", content: "noindex" },
 ];
 
-const headers = { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" };
+const tokenPageHeaders = { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" };
+
+// The link's token is in the URL: never cache the page or send it as a referrer.
+export function headers() {
+  return tokenPageHeaders;
+}
 
 export async function loader({ params, context }: Route.LoaderArgs) {
   const db = await getServices(context).db();
   const row = await findUsableLink(db, params.token, "password_reset");
-  return data({ email: row?.userEmail ?? null }, { headers });
+  return data({ email: row?.userEmail ?? null }, { headers: tokenPageHeaders });
 }
 
 export async function action({ params, request, context }: Route.ActionArgs) {
@@ -51,7 +56,7 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     throw error;
   }
   // All sessions were revoked; sign in again with the new password.
-  return redirect("/login?reset=1", { headers });
+  return redirect("/login?reset=1", { headers: tokenPageHeaders });
 }
 
 export default function ResetPassword({ loaderData, actionData }: Route.ComponentProps) {

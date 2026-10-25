@@ -1,6 +1,6 @@
 import { ArrowLeft, ExternalLink, Plus } from "lucide-react";
 import { data, Form, Link, redirect } from "react-router";
-import { ActionError, ActionForm } from "~/components/dashboard/job-panels";
+import { ActionError, ActionForm, PolicyFlagsAlert } from "~/components/dashboard/job-panels";
 import { JobTable } from "~/components/dashboard/job-table";
 import { OneTimeLink } from "~/components/dashboard/link-result";
 import { NoticeBanner } from "~/components/dashboard/notice";
@@ -13,6 +13,7 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { getServices } from "~/lib/context.server";
 import { label, ORGANIZATION_TYPES } from "~/lib/labels";
+import { findPolicyFlags } from "~/lib/policy-flags";
 import { purgePublicPaths } from "~/lib/public-cache.server";
 import { reasonFrom, serviceErrorResult, withNotice } from "~/lib/route-helpers.server";
 import { requireStaffViewer } from "~/lib/session.server";
@@ -29,11 +30,23 @@ import { listOrganizationJobsForStaff } from "~/services/job-queries.server";
 import {
   getOrganizationForActor,
   listOrganizationMembers,
+  PROFILE_FIELDS,
+  reviewProfileChange,
   setOrganizationVerification,
   updateOrganization,
 } from "~/services/organizations.server";
 import { setUserStatus } from "~/services/users.server";
 import type { Route } from "./+types/employer";
+
+const PROFILE_LABELS: Record<string, string> = {
+  description: "About the employer",
+  website: "Website",
+  publicEmail: "Public email",
+  publicPhone: "Public phone",
+  officeCity: "City",
+  officeBarangay: "Barangay",
+  officeAddress: "Address",
+};
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [{ title: `${loaderData?.organization.name ?? "Employer"} — Review dashboard` }];
@@ -49,6 +62,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
       listOrganizationJobsForStaff(db, viewer, organization.id),
       listOpenLinks(db, viewer),
     ]);
+    const pending = organization.pendingProfile;
     return {
       organization,
       members,
@@ -56,6 +70,12 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
       invitations: links.filter(
         (l) => l.organizationId === organization.id && l.purpose === "invitation",
       ),
+      profileChanges: pending
+        ? PROFILE_FIELDS.filter((k) => (organization[k] ?? null) !== (pending[k] ?? null)).map(
+            (k) => ({ key: k, now: organization[k] ?? null, proposed: pending[k] ?? null }),
+          )
+        : [],
+      profileFlags: pending ? findPolicyFlags("", pending.description ?? "", null) : [],
     };
   } catch (error) {
     throw serviceErrorResult(error);
@@ -107,6 +127,22 @@ export async function action({ request, params, context }: Route.ActionArgs) {
         return back(
           intent === "verify" ? "verified" : intent === "suspend" ? "suspended" : "unverified",
         );
+      }
+      case "profile_approve":
+      case "profile_reject": {
+        const decision = intent === "profile_approve" ? "approve" : "reject";
+        const note = reasonFrom(form);
+        if (decision === "reject" && !note)
+          return data({ error: "Write why the changes are rejected." }, { status: 400 });
+        const { organization, liveJobs } = await reviewProfileChange(db, viewer, orgId, decision, {
+          submittedAt: String(form.get("submittedAt") ?? ""),
+          note,
+        });
+        await purgePublicPaths(services.baseUrl, [
+          `/employers/${organization.slug}`,
+          ...liveJobs.flatMap((j) => [`/jobs/${j.publicId}`, `/jobs/${j.publicId}/${j.slug}`]),
+        ]);
+        return back(decision === "approve" ? "profile_approved" : "profile_rejected");
       }
       case "invite": {
         const email = emailSchema.safeParse(form.get("email"));
@@ -162,7 +198,14 @@ export async function action({ request, params, context }: Route.ActionArgs) {
 }
 
 export default function ManageEmployer({ loaderData, actionData }: Route.ComponentProps) {
-  const { organization: org, members, jobs, invitations } = loaderData;
+  const {
+    organization: org,
+    members,
+    jobs,
+    invitations,
+    profileChanges,
+    profileFlags,
+  } = loaderData;
   const result = actionData as
     | {
         oneTimeLink?: {
@@ -217,6 +260,66 @@ export default function ManageEmployer({ loaderData, actionData }: Route.Compone
       <NoticeBanner />
       <ActionError error={result?.error} />
       {result?.oneTimeLink ? <OneTimeLink {...result.oneTimeLink} /> : null}
+
+      {org.pendingProfileSubmittedAt ? (
+        <section
+          id="profile-changes"
+          aria-labelledby="profile-changes-heading"
+          className="mb-6 scroll-mt-4 rounded-lg border-2 border-gold bg-surface p-4"
+        >
+          <h2 id="profile-changes-heading" className="text-xl font-bold">
+            Profile changes waiting for review
+          </h2>
+          <p className="mt-1 text-[0.9375rem] text-ink-muted">
+            Sent {describeAge(org.pendingProfileSubmittedAt)}. These details show on the employer
+            page and on every job page, so check for fees, contact details that bypass the listing,
+            and misleading claims.
+          </p>
+          {profileFlags.length ? (
+            <div className="mt-3">
+              <PolicyFlagsAlert flags={profileFlags} audience="staff" />
+            </div>
+          ) : null}
+          <dl className="mt-3 divide-y divide-line">
+            {profileChanges.map((c) => (
+              <div key={c.key} className="grid gap-1 py-3 sm:grid-cols-[10rem_1fr_1fr] sm:gap-4">
+                <dt className="font-semibold">{PROFILE_LABELS[c.key]}</dt>
+                <dd className="text-ink-muted">
+                  <span className="block text-xs font-semibold uppercase">Now</span>
+                  <span className="[overflow-wrap:anywhere] whitespace-pre-line">
+                    {c.now ?? "(empty)"}
+                  </span>
+                </dd>
+                <dd>
+                  <span className="block text-xs font-semibold text-ink-muted uppercase">
+                    Proposed
+                  </span>
+                  <span className="[overflow-wrap:anywhere] whitespace-pre-line">
+                    {c.proposed ?? "(empty)"}
+                  </span>
+                </dd>
+              </div>
+            ))}
+          </dl>
+          <div className="mt-3 flex flex-wrap items-start gap-2">
+            <ActionForm
+              intent="profile_approve"
+              label="Approve and publish"
+              variant="default"
+              hidden={{ submittedAt: new Date(org.pendingProfileSubmittedAt).toISOString() }}
+            />
+            <ActionForm
+              intent="profile_reject"
+              label="Reject"
+              variant="destructive-outline"
+              hidden={{ submittedAt: new Date(org.pendingProfileSubmittedAt).toISOString() }}
+              reasonLabel="Why are the changes rejected?"
+              reasonHint="The employer sees this note."
+              confirmLabel="Reject changes"
+            />
+          </div>
+        </section>
+      ) : null}
 
       <div className="grid gap-6 xl:grid-cols-2">
         <section
@@ -289,7 +392,8 @@ export default function ManageEmployer({ loaderData, actionData }: Route.Compone
                     {m.status === "suspended" ? <Badge variant="danger">Suspended</Badge> : null}
                   </p>
                   <p className="text-sm [overflow-wrap:anywhere] text-ink-muted">
-                    {m.email}, last active {m.lastActiveAt ? describeAge(m.lastActiveAt) : "never"}
+                    {m.email}, last signed in{" "}
+                    {m.lastActiveAt ? describeAge(m.lastActiveAt) : "never"}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     <ActionForm

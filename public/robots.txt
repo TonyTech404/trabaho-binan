@@ -1,9 +1,11 @@
 User-agent: *
 Disallow: /manage
-Disallow: /employer
+Disallow: /employer$
+Disallow: /employer/
 Disallow: /account
 Disallow: /invite
 Disallow: /reset-password
 Disallow: /apply
 Disallow: /report
-Sitemap: /sitemap.xml
+Disallow: /application-status
+Sitemap: https://trabaho.bantaybinan.com/sitemap.xml

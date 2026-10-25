@@ -19,6 +19,11 @@ export const meta = () => [
   { name: "robots", content: "noindex" },
 ];
 
+// The link's token is in the URL: never cache the page or send it as a referrer.
+export function headers() {
+  return { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" };
+}
+
 export async function loader({ params, context }: Route.LoaderArgs) {
   const db = await getServices(context).db();
   const row = await findUsableLink(db, params.token, "invitation");
@@ -62,8 +67,17 @@ export async function action({ params, request, context }: Route.ActionArgs) {
   const errors: FieldErrors = { ...(nameError ? { name: nameError } : {}), ...(pw.errors ?? {}) };
   if (Object.keys(errors).length || !name || !pw.password) return data({ errors }, { status: 400 });
 
+  let user;
   try {
-    const user = await acceptInvitation(db, params.token, { name, password: pw.password });
+    user = await acceptInvitation(db, params.token, { name, password: pw.password });
+  } catch (error) {
+    if (error instanceof ServiceError)
+      return data({ errors: { form: error.message } as FieldErrors }, { status: error.status });
+    throw error;
+  }
+  // The account exists now. If signing in fails for any reason, send the
+  // person to the sign-in page rather than showing an error for a used link.
+  try {
     const auth = await services.auth();
     const result = await auth.api.signInEmail({
       body: { email: user.email, password: pw.password, rememberMe: true },
@@ -73,10 +87,8 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     return redirect(user.role === "employer" ? "/employer?welcome=1" : "/manage?welcome=1", {
       headers: sessionHeaders(result.headers),
     });
-  } catch (error) {
-    if (error instanceof ServiceError)
-      return data({ errors: { form: error.message } as FieldErrors }, { status: error.status });
-    throw error;
+  } catch {
+    return redirect("/login");
   }
 }
 

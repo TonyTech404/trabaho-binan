@@ -130,7 +130,7 @@ describeDb("organization access boundaries", () => {
   });
 
   it("only accepts public profile fields from employers", async () => {
-    const org = await updateOwnOrganizationProfile(db, employerA, {
+    const { organization: org } = await updateOwnOrganizationProfile(db, employerA, {
       description: "We bake bread.",
       website: null,
       publicEmail: null,

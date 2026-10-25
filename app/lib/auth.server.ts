@@ -1,9 +1,16 @@
 import type { Auth as BetterAuth, BetterAuthOptions } from "better-auth";
 import { betterAuth } from "better-auth/minimal";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { Database } from "~/db/client.server";
-import { accounts, sessions, users, verifications } from "~/db/schema";
+import {
+  accounts,
+  organizationMembers,
+  organizations,
+  sessions,
+  users,
+  verifications,
+} from "~/db/schema";
 import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } from "./constants";
 import { hashPassword, verifyPassword } from "./password.server";
 
@@ -41,7 +48,8 @@ function authOptions(db: Database, config: AuthConfig) {
     },
     session: {
       expiresIn: 60 * 60 * 24 * 7,
-      updateAge: 60 * 60 * 24,
+      // A fixed seven-day session: signing in again is the only way to extend it.
+      disableSessionRefresh: true,
       // No cookie cache: suspensions and role changes take effect immediately.
       cookieCache: { enabled: false },
     },
@@ -59,7 +67,8 @@ function authOptions(db: Database, config: AuthConfig) {
     databaseHooks: {
       session: {
         create: {
-          // Suspended accounts cannot start new sessions.
+          // Suspended accounts, and people from suspended organizations,
+          // cannot start new sessions.
           async before(session) {
             const [user] = await db
               .select({ status: users.status })
@@ -67,6 +76,18 @@ function authOptions(db: Database, config: AuthConfig) {
               .where(eq(users.id, session.userId))
               .limit(1);
             if (user?.status !== "active") return false;
+            const [suspendedOrg] = await db
+              .select({ id: organizations.id })
+              .from(organizationMembers)
+              .innerJoin(organizations, eq(organizations.id, organizationMembers.organizationId))
+              .where(
+                and(
+                  eq(organizationMembers.userId, session.userId),
+                  eq(organizations.verificationStatus, "suspended"),
+                ),
+              )
+              .limit(1);
+            if (suspendedOrg) return false;
           },
         },
       },

@@ -74,7 +74,7 @@ function TaskRow({
 export default function Overview({ loaderData }: Route.ComponentProps) {
   const { counts, expiring, needsConfirmation } = loaderData;
   const [params] = useSearchParams();
-  const review = counts.pendingJobs + counts.pendingRevisions;
+  const review = counts.pendingJobs + counts.pendingRevisions + counts.pendingProfiles;
   return (
     <>
       <PageHeader

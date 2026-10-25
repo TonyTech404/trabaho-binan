@@ -12,6 +12,7 @@ import { withinRateLimit } from "~/lib/rate-limit.server";
 import { withNotice } from "~/lib/route-helpers.server";
 import { requireViewer } from "~/lib/session.server";
 import type { FieldErrors } from "~/lib/validation";
+import { revokeResetLinks } from "~/services/account-links.server";
 import { recordAudit } from "~/services/common.server";
 import { countNewApplications } from "~/services/applications.server";
 import { getStaffNavCounts } from "~/services/job-queries.server";
@@ -68,20 +69,12 @@ export async function action({ request, context }: Route.ActionArgs) {
   if (pw.errors || !pw.password) return data({ errors: pw.errors ?? {} }, { status: 400 });
 
   const auth = await services.auth();
+  let result;
   try {
-    const result = await auth.api.changePassword({
+    result = await auth.api.changePassword({
       body: { currentPassword, newPassword: pw.password, revokeOtherSessions: true },
       headers: request.headers,
       returnHeaders: true,
-    });
-    await recordAudit(await services.db(), viewer, {
-      action: "user.password_change",
-      entityType: "user",
-      entityId: viewer.id,
-      summary: `${viewer.email} changed their password`,
-    });
-    return redirect(withNotice("/account", "password_changed"), {
-      headers: sessionHeaders(result.headers),
     });
   } catch {
     return data(
@@ -89,6 +82,18 @@ export async function action({ request, context }: Route.ActionArgs) {
       { status: 400 },
     );
   }
+  // The password has changed; anything failing below is a real error, not a wrong password.
+  const db = await services.db();
+  await revokeResetLinks(db, viewer.id);
+  await recordAudit(db, viewer, {
+    action: "user.password_change",
+    entityType: "user",
+    entityId: viewer.id,
+    summary: `${viewer.email} changed their password`,
+  });
+  return redirect(withNotice("/account", "password_changed"), {
+    headers: sessionHeaders(result.headers),
+  });
 }
 
 export default function Account({ loaderData, actionData }: Route.ComponentProps) {

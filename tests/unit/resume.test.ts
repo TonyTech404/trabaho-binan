@@ -112,7 +112,6 @@ describe("application files", () => {
     expect(detectFileKind(pdf, "cv.pdf")).toBe("pdf");
     expect(detectFileKind(pdf, "renamed.txt")).toBe("pdf");
     expect(detectFileKind(zip, "cv.docx")).toBe("docx");
-    expect(detectFileKind(ole, "cv.doc")).toBe("doc");
     expect(detectFileKind(jpeg(null), "IMG_0001.HEIC")).toBe("jpeg");
     expect(detectFileKind(png([["IHDR", [0]]]), "scan")).toBe("png");
   });
@@ -121,6 +120,8 @@ describe("application files", () => {
     expect(detectFileKind(new TextEncoder().encode("<html>"), "cv.pdf")).toBeNull();
     expect(detectFileKind(zip, "photos.zip")).toBeNull();
     expect(detectFileKind(ole, "sheet.xls")).toBeNull();
+    // Legacy Word files can carry macros, so they are refused too.
+    expect(detectFileKind(ole, "cv.doc")).toBeNull();
     expect(
       detectFileKind(new Uint8Array([0, 0, 0, 0x18, ...ascii("ftypheic")]), "a.heic"),
     ).toBeNull();
@@ -159,6 +160,56 @@ describe("application files", () => {
   it("drops EXIF entirely when the photo is already upright", () => {
     expect(has(stripJpegMetadata(jpeg(1))!, "Exif")).toBe(false);
     expect(has(stripJpegMetadata(jpeg(null))!, "Exif")).toBe(false);
+  });
+
+  it("drops data after the end of the image (motion-photo video, extra images)", () => {
+    const withTrailer = new Uint8Array([...jpeg(null), ...ascii("ftypmp42 GPS 14.33N motion")]);
+    const clean = stripJpegMetadata(withTrailer)!;
+    expect(has(clean, "motion")).toBe(false);
+    expect([...clean.slice(-2)]).toEqual([0xff, 0xd9]);
+  });
+
+  it("drops metadata between the scans of a progressive JPEG", () => {
+    const scan = (data: number[]) => [
+      ...segment(0xda, [0x01, 0x01, 0x00, 0x00, 0x3f, 0x00]),
+      ...data,
+    ];
+    const progressive = new Uint8Array([
+      0xff,
+      0xd8,
+      ...segment(0xdb, [0x00, ...new Array(64).fill(1)]),
+      ...scan([0x11, 0xff, 0x00, 0x22, 0xff, 0xd0, 0x33]),
+      ...segment(0xe1, ascii("Exif\0\0GPS hidden")),
+      ...segment(0xc4, [0x00, 0x01]),
+      ...scan([0x44]),
+      0xff,
+      0xd9,
+    ]);
+    const clean = stripJpegMetadata(progressive)!;
+    expect(has(clean, "GPS hidden")).toBe(false);
+    // Both scans survive, including stuffed bytes and restart markers.
+    expect(has(clean, "\x11\xff\x00\x22\xff\xd0\x33")).toBe(true);
+    expect(clean.filter((b, i) => b === 0xff && clean[i + 1] === 0xda)).toHaveLength(2);
+  });
+
+  it("keeps the colour profile but drops other application blocks", () => {
+    const photo = new Uint8Array([
+      0xff,
+      0xd8,
+      ...segment(0xe2, ascii("ICC_PROFILE\0\x01\x01colours")),
+      ...segment(0xe2, ascii("MPF\0second image")),
+      ...segment(0xeb, ascii("JP C2PA author=Juan")),
+      ...segment(0xed, ascii("Photoshop 3.0 IPTC")),
+      ...segment(0xda, [0x01, 0x01, 0x00, 0x00, 0x3f, 0x00]),
+      0x12,
+      0xff,
+      0xd9,
+    ]);
+    const clean = stripJpegMetadata(photo)!;
+    expect(has(clean, "colours")).toBe(true);
+    expect(has(clean, "second image")).toBe(false);
+    expect(has(clean, "author=Juan")).toBe(false);
+    expect(has(clean, "IPTC")).toBe(false);
   });
 
   it("rejects malformed JPEGs instead of storing them with metadata", () => {

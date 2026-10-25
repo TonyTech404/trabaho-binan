@@ -35,10 +35,15 @@ export const NOTICES: Record<string, string> = {
   settings_saved: "Settings saved.",
   password_changed: "Password changed. Other devices were signed out.",
   profile_saved: "Company profile saved.",
+  profile_submitted:
+    "Sent for review. Your public page updates once a reviewer approves the changes.",
+  profile_approved: "Profile changes approved and published.",
+  profile_rejected: "Profile changes rejected. The employer sees your reason.",
   user_updated: "Account updated.",
   link_revoked: "Link revoked. It can no longer be used.",
   application_status: "Application status saved.",
   filled: "Done. Closed jobs leave the listings; applicants see their updated status.",
+  application_deleted: "Application and its files deleted.",
 };
 
 export function NoticeBanner() {

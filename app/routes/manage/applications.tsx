@@ -1,4 +1,5 @@
 import { ApplicationFilters, ApplicationList } from "~/components/dashboard/applications";
+import { NoticeBanner } from "~/components/dashboard/notice";
 import { PageHeader } from "~/components/dashboard/shell";
 import { getServices } from "~/lib/context.server";
 import { APPLICATION_STATUSES } from "~/lib/labels";
@@ -28,8 +29,9 @@ export default function Applications({ loaderData }: Route.ComponentProps) {
     <>
       <PageHeader
         title="Applications"
-        description="Applications sent with a résumé on Trabaho Biñan. They are deleted automatically six months after they are sent."
+        description="Applications sent on Trabaho Biñan. They are deleted automatically six months after they are sent."
       />
+      <NoticeBanner />
       <ApplicationFilters
         status={status}
         jobId={jobId}

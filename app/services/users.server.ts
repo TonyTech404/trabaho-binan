@@ -1,6 +1,6 @@
-import { asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import type { Database } from "~/db/client.server";
-import { organizationMembers, organizations, sessions, users } from "~/db/schema";
+import { accountLinks, organizationMembers, organizations, sessions, users } from "~/db/schema";
 import {
   ConflictError,
   ForbiddenError,
@@ -10,6 +10,7 @@ import {
   requireAdmin,
   requireStaff,
   type Actor,
+  type Tx,
 } from "./common.server";
 
 export async function listUsers(db: Database, actor: Actor) {
@@ -44,6 +45,35 @@ async function loadTarget(db: Database, actor: Actor, userId: string) {
   return user;
 }
 
+/**
+ * Re-reads the acting administrator under a row lock inside the change, so
+ * two administrators cannot remove each other at the same moment and leave
+ * nobody in charge.
+ */
+async function assertStillAdmin(tx: Tx, actor: Actor) {
+  const [me] = await tx
+    .select({ role: users.role, status: users.status })
+    .from(users)
+    .where(eq(users.id, actor.id))
+    .for("update")
+    .limit(1);
+  if (me?.role !== "admin" || me.status !== "active") throw new ForbiddenError();
+}
+
+/** Unused invitation and password-reset links a person created stop working. */
+async function revokeLinksCreatedBy(tx: Tx, userId: string, now = new Date()) {
+  await tx
+    .update(accountLinks)
+    .set({ revokedAt: now })
+    .where(
+      and(
+        eq(accountLinks.createdById, userId),
+        isNull(accountLinks.usedAt),
+        isNull(accountLinks.revokedAt),
+      ),
+    );
+}
+
 /** Suspending revokes access immediately: every session is deleted. */
 export async function setUserStatus(
   db: Database,
@@ -54,12 +84,16 @@ export async function setUserStatus(
   const user = await loadTarget(db, actor, userId);
   if (user.status === status) return user;
   return db.transaction(async (tx) => {
+    if (user.role !== "employer") await assertStillAdmin(tx, actor);
     const [updated] = await tx
       .update(users)
       .set({ status })
       .where(eq(users.id, user.id))
       .returning();
-    if (status === "suspended") await tx.delete(sessions).where(eq(sessions.userId, user.id));
+    if (status === "suspended") {
+      await tx.delete(sessions).where(eq(sessions.userId, user.id));
+      await revokeLinksCreatedBy(tx, user.id);
+    }
     await recordAudit(tx, actor, {
       action: status === "suspended" ? "user.suspend" : "user.reactivate",
       entityType: "user",
@@ -85,7 +119,10 @@ export async function setStaffRole(
     );
   if (user.role === role) return user;
   return db.transaction(async (tx) => {
+    await assertStillAdmin(tx, actor);
     const [updated] = await tx.update(users).set({ role }).where(eq(users.id, user.id)).returning();
+    // A demoted administrator's pending staff invitations must not outlive the role.
+    if (role !== "admin") await revokeLinksCreatedBy(tx, user.id);
     await recordAudit(tx, actor, {
       action: "user.role_change",
       entityType: "user",

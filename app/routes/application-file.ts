@@ -7,7 +7,8 @@ import type { Route } from "./+types/application-file";
 /**
  * Streams one attached file to staff or to members of the job's
  * organization. There is no public URL for these files; every access is
- * checked and recorded. `?view=1` shows photos and PDFs in the browser.
+ * checked and recorded. `?view=1` shows photos in the browser; documents
+ * (PDF, Word) always download.
  */
 export async function loader({ request, params, context }: Route.LoaderArgs) {
   const viewer = await requireViewer(request, context);
@@ -21,9 +22,9 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
       viewer,
       params.applicationId,
       params.fileId,
+      inline ? "view" : "download",
     );
-    const viewable =
-      file.contentType.startsWith("image/") || file.contentType === "application/pdf";
+    const viewable = file.contentType.startsWith("image/");
     return new Response(file.body, {
       headers: {
         "Content-Type": file.contentType,
@@ -31,7 +32,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
         "Content-Disposition": `${inline && viewable ? "inline" : "attachment"}; filename="${file.filename}"`,
         "Cache-Control": "private, no-store",
         "X-Content-Type-Options": "nosniff",
-        // A PDF viewed inline must not run anything or reach other origins.
+        // Nothing served here may run code or reach other origins.
         "Content-Security-Policy":
           "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox",
       },

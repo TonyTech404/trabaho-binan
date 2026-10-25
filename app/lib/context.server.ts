@@ -2,6 +2,7 @@ import { createContext, type RouterContextProvider } from "react-router";
 import { createLazyDatabase, type Database } from "~/db/client.server";
 import { r2ResumeStore, type ResumeStore } from "./resume";
 import { createAuth, SESSION_COOKIE_PREFIX, type Auth } from "./auth.server";
+import { describeError } from "./log.server";
 
 export interface AppServices {
   env: Env;
@@ -52,7 +53,7 @@ export function createAppServices(
     defer(task) {
       deferred.push(
         task().catch((error) =>
-          console.error(JSON.stringify({ deferredTaskFailed: String(error) })),
+          console.error(JSON.stringify({ deferredTaskFailed: describeError(error) })),
         ),
       );
     },

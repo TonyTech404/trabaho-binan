@@ -107,4 +107,18 @@ describeAppRole("restricted runtime role", () => {
     );
     await expect(pool.query("delete from job_events")).rejects.toThrow(/permission denied/);
   });
+
+  it("cannot delete the rows history hangs off, so history cannot be wiped by cascade", async () => {
+    for (const table of ["jobs", "users", "organizations", "job_revisions", "account_links"]) {
+      await expect(pool.query(`delete from ${table} where false`)).rejects.toThrow(
+        /permission denied/,
+      );
+    }
+  });
+
+  it("can delete what the application deletes: sessions, tokens and applications", async () => {
+    for (const table of ["sessions", "verifications", "applications"]) {
+      await expect(pool.query(`delete from ${table} where false`)).resolves.toBeDefined();
+    }
+  });
 });

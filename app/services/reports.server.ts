@@ -6,6 +6,7 @@ import { REPORT_REASONS } from "~/lib/labels";
 import { cleanText, withEmptyDefaults } from "~/lib/validation";
 import {
   ConflictError,
+  isUuid,
   NotFoundError,
   recordAudit,
   requireStaff,
@@ -37,7 +38,7 @@ export async function createReport(db: Database, publicId: string, input: Report
     .where(
       and(
         eq(jobs.publicId, publicId),
-        inArray(jobs.status, ["published", "paused", "closed", "expired"]),
+        inArray(jobs.status, ["published", "paused", "closed", "expired", "archived"]),
         isNotNull(jobs.firstPublishedAt),
       ),
     )
@@ -103,6 +104,7 @@ export async function resolveReport(
   now = new Date(),
 ) {
   requireStaff(actor);
+  if (!isUuid(reportId)) throw new NotFoundError("Report not found.");
   return db.transaction(async (tx) => {
     const [report] = await tx
       .select()

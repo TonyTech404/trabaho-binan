@@ -1,6 +1,7 @@
-import { and, asc, count, eq, ilike, inArray, or, sql } from "drizzle-orm";
+import { and, asc, count, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import type { Database } from "~/db/client.server";
 import {
+  accountLinks,
   jobs,
   organizationMembers,
   organizations,
@@ -11,8 +12,10 @@ import {
 import { randomId, slugify } from "~/lib/ids";
 import type { OrganizationInput, OrganizationProfileInput } from "~/lib/validation";
 import {
+  ConflictError,
   ForbiddenError,
   isStaff,
+  isUuid,
   NotFoundError,
   recordAudit,
   recordJobEvent,
@@ -33,7 +36,7 @@ const ORGANIZATION_FIELDS = [
   "internalNotes",
 ] as const satisfies readonly (keyof OrganizationInput)[];
 
-const PROFILE_FIELDS = [
+export const PROFILE_FIELDS = [
   "description",
   "website",
   "publicEmail",
@@ -89,6 +92,7 @@ export async function updateOrganization(
   input: OrganizationInput,
 ) {
   requireStaff(actor);
+  if (!isUuid(organizationId)) throw new NotFoundError("Organization not found.");
   return db.transaction(async (tx) => {
     const [before] = await tx
       .select()
@@ -115,29 +119,110 @@ export async function updateOrganization(
   });
 }
 
-/** Employers edit only their own public profile fields; name and type stay with staff. */
+/**
+ * Employers propose changes to their own public profile; name and type stay
+ * with staff. The profile appears on every job page, so nothing goes public
+ * until a reviewer approves it (reviewProfileChange).
+ */
 export async function updateOwnOrganizationProfile(
   db: Database,
   actor: Actor,
   input: OrganizationProfileInput,
+  now = new Date(),
 ) {
   if (actor.role !== "employer" || !actor.organizationId) throw new ForbiddenError();
   const organizationId = actor.organizationId;
   return db.transaction(async (tx) => {
+    const [before] = await tx
+      .select()
+      .from(organizations)
+      .where(eq(organizations.id, organizationId))
+      .for("update")
+      .limit(1);
+    if (!before) throw new NotFoundError("Organization not found.");
+    if (before.verificationStatus === "suspended") throw new ForbiddenError();
+    const proposed = pickFields(input, PROFILE_FIELDS);
+    const changed = PROFILE_FIELDS.filter((k) => (before[k] ?? null) !== proposed[k]);
+    // Saving the approved details again withdraws a pending proposal.
     const [org] = await tx
       .update(organizations)
-      .set(pickFields(input, PROFILE_FIELDS))
+      .set(
+        changed.length
+          ? { pendingProfile: proposed, pendingProfileSubmittedAt: now, profileReviewNote: null }
+          : { pendingProfile: null, pendingProfileSubmittedAt: null },
+      )
       .where(eq(organizations.id, organizationId))
       .returning();
-    if (!org) throw new NotFoundError("Organization not found.");
     await recordAudit(tx, actor, {
-      action: "organization.profile_edit",
+      action: changed.length ? "organization.profile_submit" : "organization.profile_withdraw",
       entityType: "organization",
       entityId: org.id,
       summary: org.name,
-      metadata: { changed: PROFILE_FIELDS },
+      metadata: { changed },
     });
-    return org;
+    return { organization: org, submitted: changed.length > 0 };
+  });
+}
+
+/**
+ * Staff approve or reject an employer's proposed profile. `submittedAt` is the
+ * proposal the reviewer looked at; if the employer has changed it since, the
+ * decision is refused so nobody approves text they have not seen.
+ */
+export async function reviewProfileChange(
+  db: Database,
+  actor: Actor,
+  organizationId: string,
+  decision: "approve" | "reject",
+  options: { submittedAt: string; note: string | null },
+) {
+  requireStaff(actor);
+  if (!isUuid(organizationId)) throw new NotFoundError("Organization not found.");
+  if (decision === "reject" && !options.note) throw new ConflictError("Give a reason.");
+  return db.transaction(async (tx) => {
+    const [before] = await tx
+      .select()
+      .from(organizations)
+      .where(eq(organizations.id, organizationId))
+      .for("update")
+      .limit(1);
+    if (!before) throw new NotFoundError("Organization not found.");
+    if (!before.pendingProfile || !before.pendingProfileSubmittedAt) {
+      throw new ConflictError("No profile changes are waiting for review.");
+    }
+    if (before.pendingProfileSubmittedAt.toISOString() !== options.submittedAt) {
+      throw new ConflictError("The employer changed the proposal. Check it again before deciding.");
+    }
+    const proposed = pickFields(before.pendingProfile, PROFILE_FIELDS);
+    const changed = PROFILE_FIELDS.filter((k) => (before[k] ?? null) !== proposed[k]);
+    const [org] = await tx
+      .update(organizations)
+      .set({
+        ...(decision === "approve" ? proposed : {}),
+        pendingProfile: null,
+        pendingProfileSubmittedAt: null,
+        profileReviewNote: decision === "reject" ? options.note : null,
+      })
+      .where(eq(organizations.id, organizationId))
+      .returning();
+    await recordAudit(tx, actor, {
+      action: `organization.profile_${decision}`,
+      entityType: "organization",
+      entityId: org.id,
+      summary: org.name,
+      metadata: { changed, note: options.note },
+    });
+    // Job pages show the profile, so their cached copies need refreshing.
+    const liveJobs =
+      decision === "approve"
+        ? await tx
+            .select({ publicId: jobs.publicId, slug: jobs.slug })
+            .from(jobs)
+            .where(
+              and(eq(jobs.organizationId, org.id), inArray(jobs.status, ["published", "paused"])),
+            )
+        : [];
+    return { organization: org, liveJobs };
   });
 }
 
@@ -155,6 +240,7 @@ export async function setOrganizationVerification(
   now = new Date(),
 ) {
   requireStaff(actor);
+  if (!isUuid(organizationId)) throw new NotFoundError("Organization not found.");
   return db.transaction(async (tx) => {
     const [before] = await tx
       .select()
@@ -175,9 +261,25 @@ export async function setOrganizationVerification(
       .where(eq(organizations.id, organizationId))
       .returning();
 
-    // Suspension takes the organization's live listings down immediately.
+    // Suspension takes the organization's live listings down immediately and
+    // cuts off its people: sessions end and unused invitations stop working.
     let pausedJobs: { id: string; publicId: string; slug: string }[] = [];
     if (status === "suspended") {
+      const members = tx
+        .select({ id: organizationMembers.userId })
+        .from(organizationMembers)
+        .where(eq(organizationMembers.organizationId, organizationId));
+      await tx.delete(sessions).where(inArray(sessions.userId, members));
+      await tx
+        .update(accountLinks)
+        .set({ revokedAt: now })
+        .where(
+          and(
+            eq(accountLinks.organizationId, organizationId),
+            isNull(accountLinks.usedAt),
+            isNull(accountLinks.revokedAt),
+          ),
+        );
       pausedJobs = await tx
         .update(jobs)
         .set({ status: "paused", pausedAt: now, updatedById: actor.id })
@@ -208,6 +310,7 @@ export async function setOrganizationVerification(
 }
 
 export async function getOrganizationForActor(db: Database, actor: Actor, organizationId: string) {
+  if (!isUuid(organizationId)) throw new NotFoundError("Organization not found.");
   if (!isStaff(actor) && actor.organizationId !== organizationId) {
     throw new NotFoundError("Organization not found.");
   }

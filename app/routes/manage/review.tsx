@@ -42,6 +42,16 @@ export async function loader({ request, context }: Route.LoaderArgs) {
         submittedAt: r.submittedAt,
         flags: flag(r),
       })),
+      ...queue.pendingProfiles.map((o) => ({
+        key: `org-${o.id}`,
+        href: `/manage/employers/${o.id}#profile-changes`,
+        title: "Company profile",
+        kind: "Profile change",
+        organizationName: o.organizationName,
+        organizationStatus: o.organizationStatus,
+        submittedAt: o.submittedAt,
+        flags: findPolicyFlags("", o.pendingProfile?.description ?? "", null).map((f) => f.label),
+      })),
     ].sort(
       (a, b) => new Date(a.submittedAt ?? 0).getTime() - new Date(b.submittedAt ?? 0).getTime(),
     ),

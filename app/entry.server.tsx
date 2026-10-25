@@ -1,8 +1,9 @@
 import { isbot } from "isbot";
 import { renderToReadableStream } from "react-dom/server";
-import type { EntryContext, RouterContextProvider } from "react-router";
+import type { EntryContext, HandleErrorFunction, RouterContextProvider } from "react-router";
 import { ServerRouter } from "react-router";
 import { appContext } from "~/lib/context.server";
+import { describeError, loggablePath } from "~/lib/log.server";
 
 export const streamTimeout = 5_000;
 
@@ -31,7 +32,7 @@ export default async function handleRequest(
       signal: AbortSignal.timeout(streamTimeout + 1000),
       onError(error: unknown) {
         responseStatusCode = 500;
-        if (shellRendered) console.error(error);
+        if (shellRendered) console.error(JSON.stringify({ renderError: describeError(error) }));
       },
     },
   );
@@ -45,3 +46,18 @@ export default async function handleRequest(
   responseHeaders.set("Content-Type", "text/html; charset=utf-8");
   return new Response(body, { headers: responseHeaders, status: responseStatusCode });
 }
+
+/**
+ * Unexpected errors from loaders and actions. React Router's default logs the
+ * whole error, which for database errors includes the query's parameters.
+ */
+export const handleError: HandleErrorFunction = (error, { request }) => {
+  if (request.signal.aborted) return;
+  console.error(
+    JSON.stringify({
+      method: request.method,
+      path: loggablePath(request.url),
+      ...describeError(error),
+    }),
+  );
+};

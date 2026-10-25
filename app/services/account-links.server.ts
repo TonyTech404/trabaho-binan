@@ -1,4 +1,4 @@
-import { and, eq, gt, isNull, sql } from "drizzle-orm";
+import { and, eq, gt, isNull, ne, sql } from "drizzle-orm";
 import type { Database } from "~/db/client.server";
 import {
   accountLinks,
@@ -18,6 +18,7 @@ import {
   InputError,
   isAdmin,
   isStaff,
+  isUuid,
   NotFoundError,
   recordAudit,
   type Actor,
@@ -80,6 +81,29 @@ export async function createInvitation(
         .limit(1);
       if (!org) throw new NotFoundError("Organization not found.");
       if (org.status === "suspended") throw new ConflictError("This organization is suspended.");
+    }
+
+    // A reviewer may not quietly cancel an administrator's staff invitation.
+    if (actor && !isAdmin(actor)) {
+      const [staffInvite] = await tx
+        .select({ id: accountLinks.id })
+        .from(accountLinks)
+        .where(
+          and(
+            eq(accountLinks.email, email),
+            eq(accountLinks.purpose, "invitation"),
+            ne(accountLinks.role, "employer"),
+            isNull(accountLinks.usedAt),
+            isNull(accountLinks.revokedAt),
+            gt(accountLinks.expiresAt, now),
+          ),
+        )
+        .limit(1);
+      if (staffInvite) {
+        throw new ConflictError(
+          "This address already has a staff invitation. Ask an administrator.",
+        );
+      }
     }
 
     // A new invitation replaces any unused one for the same address.
@@ -179,6 +203,16 @@ export async function acceptInvitation(
   return db.transaction(async (tx) => {
     const link = await lockUsableLink(tx, token, "invitation", now);
     if (!link.email || !link.role) throw new ConflictError("This invitation is incomplete.");
+    if (link.organizationId) {
+      const [org] = await tx
+        .select({ status: organizations.verificationStatus })
+        .from(organizations)
+        .where(eq(organizations.id, link.organizationId))
+        .limit(1);
+      if (!org || org.status === "suspended") {
+        throw new ConflictError("This invitation can no longer be used. Contact PESO Biñan.");
+      }
+    }
 
     const [existing] = await tx
       .select({ id: users.id })
@@ -242,6 +276,7 @@ export async function createPasswordReset(
   now = new Date(),
 ) {
   if (!isStaff(actor)) throw new ForbiddenError();
+  if (!isUuid(userId)) throw new NotFoundError("User not found.");
   return db.transaction(async (tx) => {
     const [user] = await tx.select().from(users).where(eq(users.id, userId)).limit(1);
     if (!user) throw new NotFoundError("User not found.");
@@ -332,6 +367,7 @@ export async function revokeAccountLink(
   now = new Date(),
 ) {
   if (!isStaff(actor)) throw new ForbiddenError();
+  if (!isUuid(linkId)) throw new NotFoundError("Link not found.");
   return db.transaction(async (tx) => {
     const [link] = await tx
       .select()
@@ -385,4 +421,19 @@ export async function listOpenLinks(db: Database, actor: Actor, now = new Date()
     )
     .orderBy(accountLinks.createdAt);
   return rows;
+}
+
+/** After a password change, unused reset links for that account stop working. */
+export async function revokeResetLinks(db: Database, userId: string, now = new Date()) {
+  await db
+    .update(accountLinks)
+    .set({ revokedAt: now })
+    .where(
+      and(
+        eq(accountLinks.userId, userId),
+        eq(accountLinks.purpose, "password_reset"),
+        isNull(accountLinks.usedAt),
+        isNull(accountLinks.revokedAt),
+      ),
+    );
 }

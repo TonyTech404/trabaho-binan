@@ -4,6 +4,7 @@ import {
   jobRevisions,
   jobs,
   organizations,
+  users,
   type Job,
   type JobRevision,
   type JobStatus,
@@ -15,6 +16,7 @@ import {
   ForbiddenError,
   InputError,
   isStaff,
+  isUuid,
   NotFoundError,
   recordAudit,
   recordJobEvent,
@@ -96,6 +98,7 @@ function assertFutureDeadline(deadlineAt: Date, now: Date) {
 }
 
 async function lockJob(tx: Tx, actor: Actor, jobId: string): Promise<Job> {
+  if (!isUuid(jobId)) throw new NotFoundError("Job not found.");
   const [job] = await tx.select().from(jobs).where(eq(jobs.id, jobId)).for("update").limit(1);
   // Employers get "not found" for other organizations' jobs: existence is not revealed.
   if (!job || (!isStaff(actor) && job.organizationId !== actor.organizationId)) {
@@ -109,6 +112,8 @@ async function assertOrganizationActive(tx: Tx, organizationId: string) {
     .select({ status: organizations.verificationStatus })
     .from(organizations)
     .where(eq(organizations.id, organizationId))
+    // Holds off a concurrent suspension until this change is committed.
+    .for("share")
     .limit(1);
   if (!org) throw new NotFoundError("Organization not found.");
   if (org.status === "suspended") {
@@ -147,7 +152,7 @@ export async function createJob(
 ): Promise<Job> {
   // Employers always post for their own organization, whatever the form says.
   const organizationId = isStaff(actor) ? options.organizationId : actor.organizationId;
-  if (!organizationId) {
+  if (!organizationId || !isUuid(organizationId)) {
     if (isStaff(actor))
       throw new InputError("Choose an employer.", { organizationId: "Choose an employer." });
     throw new ForbiddenError("Your account is not linked to an organization.");
@@ -270,7 +275,7 @@ export async function approveJob(
   jobId: string,
   note: string | null = null,
   now = new Date(),
-  options: { confirmedOpen?: boolean } = {},
+  options: { confirmedOpen?: boolean; expectedUpdatedAt?: string } = {},
 ) {
   const confirmedOpen = options.confirmedOpen ?? true;
   requireStaff(actor);
@@ -281,6 +286,23 @@ export async function approveJob(
       ["draft", "pending_review", "changes_requested"],
       "Only drafts and listings waiting for review can be approved.",
     );
+    // Approve only what the reviewer saw: refuse if the listing changed since.
+    if (options.expectedUpdatedAt && job.updatedAt.toISOString() !== options.expectedUpdatedAt) {
+      throw new ConflictError("The listing changed after you opened it. Check it again.");
+    }
+    // Staff may publish their own drafts, but not an employer's unsent draft.
+    if (job.status === "draft") {
+      const [creator] = job.createdById
+        ? await tx
+            .select({ role: users.role })
+            .from(users)
+            .where(eq(users.id, job.createdById))
+            .limit(1)
+        : [];
+      if (creator?.role !== "admin" && creator?.role !== "reviewer") {
+        throw new ConflictError("The employer has not submitted this draft yet.");
+      }
+    }
     await assertOrganizationActive(tx, job.organizationId);
     assertFutureDeadline(job.deadlineAt, now);
     const [updated] = await tx
@@ -622,6 +644,7 @@ export async function withdrawRevision(db: Database, actor: Actor, revisionId: s
 }
 
 async function lockRevision(tx: Tx, revisionId: string) {
+  if (!isUuid(revisionId)) throw new NotFoundError("Revision not found.");
   const [revision] = await tx
     .select()
     .from(jobRevisions)
@@ -641,6 +664,7 @@ export async function reviewRevision(
   decision: RevisionDecision,
   note: string | null,
   now = new Date(),
+  expectedSubmittedAt?: string,
 ): Promise<{ job: Job; revision: JobRevision }> {
   requireStaff(actor);
   if (decision !== "approve" && !note) {
@@ -651,6 +675,13 @@ export async function reviewRevision(
     const job = await lockJob(tx, actor, revision.jobId);
     if (revision.status !== "pending_review") {
       throw new ConflictError("This revision is not waiting for review.");
+    }
+    if (
+      decision === "approve" &&
+      expectedSubmittedAt &&
+      revision.submittedAt?.toISOString() !== expectedSubmittedAt
+    ) {
+      throw new ConflictError("The employer changed the proposal. Check it again.");
     }
 
     if (decision !== "approve") {

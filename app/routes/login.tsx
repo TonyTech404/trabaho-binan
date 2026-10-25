@@ -7,6 +7,12 @@ import { sessionHeaders } from "~/lib/auth-forms.server";
 import { getServices } from "~/lib/context.server";
 import { withinRateLimit } from "~/lib/rate-limit.server";
 import { dashboardPathFor, getViewer, safeNextPath } from "~/lib/session.server";
+import {
+  isSignInLocked,
+  recordSignIn,
+  SIGN_IN_WINDOW_MINUTES,
+  signInKey,
+} from "~/services/sign-in.server";
 import type { Route } from "./+types/login";
 
 export const meta = () => [
@@ -33,31 +39,57 @@ export async function action({ request, context }: Route.ActionArgs) {
   const password = String(form.get("password") ?? "");
   const next = safeNextPath(String(form.get("next") ?? ""), "");
 
-  if (!(await withinRateLimit(services.env.AUTH_LIMITER, request, "login"))) {
+  if (!email || !password) {
+    return data({ error: "Enter your email address and password.", email }, { status: 400 });
+  }
+  // Limits per connection and per account, so neither many guesses from one
+  // place nor guesses spread over many addresses get far.
+  const key = await signInKey(email);
+  const limiter = services.env.AUTH_LIMITER;
+  if (
+    !(await withinRateLimit(limiter, request, "login")) ||
+    !(await withinRateLimit(limiter, request, "login-account", key))
+  ) {
     return data(
       { error: "Too many sign-in attempts. Wait a minute and try again.", email },
       { status: 429 },
     );
   }
-  if (!email || !password) {
-    return data({ error: "Enter your email address and password.", email }, { status: 400 });
+  const db = await services.db();
+  if (await isSignInLocked(db, key)) {
+    return data(
+      {
+        error: `Too many failed attempts for this account. Wait ${SIGN_IN_WINDOW_MINUTES} minutes, or ask an administrator for a password reset link.`,
+        email,
+      },
+      { status: 429 },
+    );
   }
 
+  const attempt = {
+    key,
+    email,
+    ip: request.headers.get("cf-connecting-ip"),
+    country: (request as { cf?: { country?: string } }).cf?.country ?? null,
+  };
   const auth = await services.auth();
+  let result;
   try {
-    const result = await auth.api.signInEmail({
+    result = await auth.api.signInEmail({
       body: { email, password, rememberMe: true },
       headers: request.headers,
       returnHeaders: true,
     });
-    const role = (result.response.user as { role?: string }).role;
-    return redirect(next || (role === "employer" ? "/employer" : "/manage"), {
-      headers: sessionHeaders(result.headers),
-    });
   } catch {
+    await recordSignIn(db, { ...attempt, user: null });
     // One message for unknown email, wrong password and suspended accounts.
     return data({ error: "The email address or password is incorrect.", email }, { status: 401 });
   }
+  const user = result.response.user as { id: string; role: "admin" | "reviewer" | "employer" };
+  await recordSignIn(db, { ...attempt, user: { id: user.id, role: user.role } });
+  return redirect(next || (user.role === "employer" ? "/employer" : "/manage"), {
+    headers: sessionHeaders(result.headers),
+  });
 }
 
 export default function Login({ loaderData, actionData }: Route.ComponentProps) {

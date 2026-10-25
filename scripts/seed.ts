@@ -42,6 +42,15 @@ async function main() {
       console.error(`Refusing to seed ${host}: it is marked as production.`);
       process.exit(1);
     }
+    // Wiping data needs positive proof that this is a throwaway database: a
+    // missing or unknown marker is refused rather than assumed safe.
+    const RESETTABLE = ["development", "test", "e2e", "staging"];
+    if (process.argv.includes("--reset") && !RESETTABLE.includes(String(marker))) {
+      console.error(
+        `Refusing to reset ${host}: its environment marker is ${JSON.stringify(marker)}, not one of ${RESETTABLE.join(", ")}.`,
+      );
+      process.exit(1);
+    }
     if (process.argv.includes("--reset")) {
       await db.execute(sql`
         truncate table audit_events, job_metrics_daily, listing_reports, job_events, job_revisions,

@@ -4,10 +4,10 @@ import { NoticeBanner } from "~/components/dashboard/notice";
 import { OrganizationForm } from "~/components/dashboard/org-form";
 import { PageHeader } from "~/components/dashboard/shell";
 import { VerificationBadge } from "~/components/dashboard/status";
+import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { buttonVariants } from "~/components/ui/button";
 import { getServices } from "~/lib/context.server";
 import { label, ORGANIZATION_TYPES } from "~/lib/labels";
-import { purgePublicPaths } from "~/lib/public-cache.server";
 import { withNotice } from "~/lib/route-helpers.server";
 import { requireEmployerViewer } from "~/lib/session.server";
 import { describeAge } from "~/lib/time";
@@ -40,9 +40,14 @@ export async function action({ request, context }: Route.ActionArgs) {
       { errors: fieldErrors(parsed.error), values: raw as Record<string, string> },
       { status: 400 },
     );
-  const org = await updateOwnOrganizationProfile(await services.db(), viewer, parsed.data);
-  await purgePublicPaths(services.baseUrl, [`/employers/${org.slug}`]);
-  return redirect(withNotice("/employer/profile", "profile_saved"));
+  const { submitted } = await updateOwnOrganizationProfile(
+    await services.db(),
+    viewer,
+    parsed.data,
+  );
+  return redirect(
+    withNotice("/employer/profile", submitted ? "profile_submitted" : "profile_saved"),
+  );
 }
 
 export default function EmployerProfileSettings({ loaderData, actionData }: Route.ComponentProps) {
@@ -70,13 +75,30 @@ export default function EmployerProfileSettings({ loaderData, actionData }: Rout
       />
       <NoticeBanner />
       <p className="mb-5 max-w-2xl text-ink-muted">
-        These details appear on your public employer page. To change the organization name or type,
-        or to ask about verification, contact the review team.
+        These details appear on your public employer page and on your job listings. The review team
+        checks changes before they appear. To change the organization name or type, or to ask about
+        verification, contact the review team.
       </p>
+      {org.pendingProfile ? (
+        <Alert className="mb-5">
+          <AlertTitle>Your changes are waiting for review</AlertTitle>
+          <AlertDescription>
+            Your public page shows the approved details until a reviewer approves the changes. You
+            can still edit them below.
+          </AlertDescription>
+        </Alert>
+      ) : org.profileReviewNote ? (
+        <Alert variant="warning" className="mb-5">
+          <AlertTitle>Your last changes were not approved</AlertTitle>
+          <AlertDescription>
+            <p className="whitespace-pre-line">{org.profileReviewNote}</p>
+          </AlertDescription>
+        </Alert>
+      ) : null}
       <div className="rounded-lg border border-line bg-surface p-4 sm:p-5">
         <OrganizationForm
           profileOnly
-          values={actionData?.values ?? org}
+          values={actionData?.values ?? { ...org, ...org.pendingProfile }}
           errors={actionData?.errors}
           submitLabel="Save profile"
         />
@@ -93,7 +115,7 @@ export default function EmployerProfileSettings({ loaderData, actionData }: Rout
             <li key={m.id} className="py-2">
               <span className="font-semibold">{m.name}</span>
               <span className="block text-sm [overflow-wrap:anywhere] text-ink-muted">
-                {m.email}, last active {m.lastActiveAt ? describeAge(m.lastActiveAt) : "never"}
+                {m.email}, last signed in {m.lastActiveAt ? describeAge(m.lastActiveAt) : "never"}
               </span>
             </li>
           ))}

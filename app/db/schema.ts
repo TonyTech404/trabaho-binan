@@ -209,6 +209,11 @@ export const organizations = pgTable(
     officeCity: text("office_city"),
     officeBarangay: text("office_barangay"),
     officeAddress: text("office_address"),
+    // Changes an employer proposes to its public profile. They appear publicly
+    // only after a reviewer approves them.
+    pendingProfile: jsonb("pending_profile").$type<Record<string, string | null>>(),
+    pendingProfileSubmittedAt: timestamp("pending_profile_submitted_at", { withTimezone: true }),
+    profileReviewNote: text("profile_review_note"),
     // Internal only
     internalNotes: text("internal_notes"),
     createdById: uuid("created_by_id").references(() => users.id, { onDelete: "set null" }),

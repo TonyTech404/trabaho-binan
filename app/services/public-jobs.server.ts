@@ -224,19 +224,72 @@ export async function getPublicJob(db: Database, publicId: string, now = new Dat
     state = "closed";
   }
 
-  // Internal fields never leave the server for public pages.
-  const {
-    sourceReference: _s,
-    contactName: _cn,
-    contactEmail: _ce,
-    contactPhone: _cp,
-    createdById: _c,
-    updatedById: _u,
-    lastConfirmedById: _l,
-    searchVector: _v,
-    ...publicJob
-  } = job;
+  // Only listed fields leave the database layer for public pages; internal
+  // contacts, notes and staff ids never do. `id` is for server-side use only.
+  const publicJob = {
+    id: job.id,
+    publicId: job.publicId,
+    slug: job.slug,
+    status: job.status,
+    title: job.title,
+    hiringCompanyName: job.hiringCompanyName,
+    description: job.description,
+    qualifications: job.qualifications,
+    skills: job.skills,
+    educationLevel: job.educationLevel,
+    fieldOfStudy: job.fieldOfStudy,
+    experienceLevel: job.experienceLevel,
+    employmentType: job.employmentType,
+    workSetup: job.workSetup,
+    workCity: job.workCity,
+    workBarangay: job.workBarangay,
+    workAddress: job.workAddress,
+    salaryMin: job.salaryMin,
+    salaryMax: job.salaryMax,
+    salaryCurrency: job.salaryCurrency,
+    salaryPeriod: job.salaryPeriod,
+    openings: job.openings,
+    applicationUrl: job.applicationUrl,
+    applicationEmail: job.applicationEmail,
+    walkInInstructions: job.walkInInstructions,
+    acceptsApplications: job.acceptsApplications,
+    applicationNotes: job.applicationNotes,
+    deadlineAt: job.deadlineAt,
+    firstPublishedAt: job.firstPublishedAt,
+    publishedAt: job.publishedAt,
+    lastConfirmedAt: job.lastConfirmedAt,
+    closedAt: job.closedAt,
+    closedReason: job.closedReason,
+  };
   return { job: publicJob, organization, state };
+}
+
+/**
+ * What a job page sends to the browser. Internal ids stay on the server; a
+ * listing that is not open loses its ways to apply; a paused listing (taken
+ * down by staff, or its employer suspended) keeps only its title and facts.
+ */
+export function jobPageView({ job, organization, state }: PublicJob) {
+  const { id: _job, ...visibleJob } = job;
+  const { id: _org, ...visibleOrg } = organization;
+  const howToApply =
+    state === "open"
+      ? {}
+      : {
+          applicationUrl: null,
+          applicationEmail: null,
+          walkInInstructions: null,
+          applicationNotes: null,
+          acceptsApplications: false,
+        };
+  if (state !== "paused") {
+    return { job: { ...visibleJob, ...howToApply }, organization: visibleOrg, state };
+  }
+  return {
+    job: { ...visibleJob, ...howToApply, description: "", qualifications: null, skills: null },
+    organization: { ...visibleOrg, description: null, website: null },
+    state,
+  };
 }
 
 export type PublicJob = NonNullable<Awaited<ReturnType<typeof getPublicJob>>>;

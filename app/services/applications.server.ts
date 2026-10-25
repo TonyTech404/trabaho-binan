@@ -88,8 +88,10 @@ export async function submitApplication(
     position,
     key: `applications/${job.id}/${id}/${position}`,
   }));
-  for (const f of stored) await store.put(f.key, f.bytes, f.contentType);
   try {
+    // Inside the try: if a later upload or the insert fails, every file
+    // already stored is deleted again rather than left behind in R2.
+    for (const f of stored) await store.put(f.key, f.bytes, f.contentType);
     await db.transaction(async (tx) => {
       await tx.insert(applications).values({
         id,
@@ -242,7 +244,7 @@ export async function closeFilledJob(
   }
   let closedJob = null;
   if (job.status === "published" || job.status === "paused") {
-    closedJob = await closeJob(db, actor, job.id, "Position filled.", now);
+    closedJob = await closeJob(db, actor, job.id, "filled", now);
   }
   let settled = 0;
   if (options.notifyOthers) {
@@ -273,6 +275,7 @@ export async function openApplicationFile(
   actor: Actor,
   applicationId: string,
   fileId: string,
+  access: "view" | "download" = "download",
 ) {
   const { application, job } = await getApplication(db, actor, applicationId);
   if (!/^[0-9a-f-]{36}$/i.test(fileId)) throw new NotFoundError("File not found.");
@@ -284,11 +287,13 @@ export async function openApplicationFile(
   if (!file) throw new NotFoundError("File not found.");
   const object = await store.get(file.key);
   if (!object) throw new NotFoundError("The file is no longer available.");
+  // The audit log outlives the application, so it records which file (by
+  // position), never its name: file names often contain the applicant's name.
   await recordAudit(db, actor, {
-    action: "application.file_download",
+    action: access === "view" ? "application.file_view" : "application.file_download",
     entityType: "application",
     entityId: application.id,
-    summary: `${application.reference} for ${job.title}: ${file.filename}`,
+    summary: `${application.reference} for ${job.title}: file ${file.position + 1}`,
   });
   return {
     body: object.body,
@@ -372,6 +377,38 @@ export async function lookupApplicationStatus(db: Database, reference: string, c
   if (!matches) return null;
   const { phone: _p, email: _e, ...safe } = row;
   return safe;
+}
+
+/**
+ * Staff delete an application and its files: spam, or a person asking for
+ * their data to be removed. Only the reference, job and reason are kept, in
+ * the audit history.
+ */
+export async function deleteApplication(
+  db: Database,
+  store: ResumeStore,
+  actor: Actor,
+  applicationId: string,
+  reason: string,
+) {
+  requireStaff(actor);
+  const { application, job } = await getApplication(db, actor, applicationId);
+  const files = await db
+    .select({ key: applicationFiles.key })
+    .from(applicationFiles)
+    .where(eq(applicationFiles.applicationId, application.id));
+  // Files first: if this fails, the application is still there to try again.
+  await store.delete(files.map((f) => f.key));
+  await db.transaction(async (tx) => {
+    await tx.delete(applications).where(eq(applications.id, application.id));
+    await recordAudit(tx, actor, {
+      action: "application.delete",
+      entityType: "application",
+      entityId: application.id,
+      summary: `${application.reference} for ${job.title}`,
+      metadata: { reason, files: files.length },
+    });
+  });
 }
 
 /** Deletes applications (and their files) older than the retention period. */

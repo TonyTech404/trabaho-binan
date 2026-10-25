@@ -173,7 +173,7 @@ export default function Users({ loaderData, actionData }: Route.ComponentProps) 
               <p className="text-sm [overflow-wrap:anywhere] text-ink-muted">
                 {u.email}
                 {u.organizationName ? `, ${u.organizationName}` : ""}. Joined{" "}
-                {formatDate(u.createdAt)}, last active{" "}
+                {formatDate(u.createdAt)}, last signed in{" "}
                 {u.lastActiveAt ? describeAge(u.lastActiveAt) : "never"}.
               </p>
               {u.id !== viewerId ? (

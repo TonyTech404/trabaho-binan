@@ -2,7 +2,7 @@ import { createRequestHandler, RouterContextProvider } from "react-router";
 import * as serverBuild from "virtual:react-router/server-build";
 import { appContext, createAppServices, hasSessionCookie } from "~/lib/context.server";
 import { isCacheableRequest, matchPublicCache, storePublicCache } from "~/lib/public-cache.server";
-import { isCrossSiteMutation, withSecurityHeaders } from "~/lib/security.server";
+import { bodyLimitResponse, isCrossSiteMutation, withSecurityHeaders } from "~/lib/security.server";
 import { runScheduledTasks } from "~/services/scheduled.server";
 
 // The server build is imported statically so its modules are evaluated at
@@ -26,6 +26,8 @@ export default {
     if (isCrossSiteMutation(request)) {
       return new Response("Cross-site form submissions are not allowed.", { status: 403 });
     }
+    const tooLarge = bodyLimitResponse(request);
+    if (tooLarge) return tooLarge;
 
     const services = createAppServices(request, env, ctx, env.HYPERDRIVE.connectionString);
     const authenticated = hasSessionCookie(request);
@@ -34,6 +36,7 @@ export default {
       isHttps: url.protocol === "https:",
       dev: import.meta.env.DEV,
       authenticated,
+      noindex: env.APP_ENV !== "production",
     };
 
     const cacheable = !import.meta.env.DEV && isCacheableRequest(request, authenticated);
