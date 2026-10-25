@@ -35,11 +35,13 @@ lands, so another session can resume accurately.
   (single use, expire 31 October). Demo accounts used for the videos
   (`demo-*@example.com`) and "Demo Bakeshop (not a real company)" are suspended;
   their demo jobs are archived and their applications deleted.
-- **Demo videos:** `video/` records and renders narrated demos (jobseekers ~50 s,
-  back office ~76 s; desktop and mobile). Rendered files are in `video/out/`
-  (not committed). See `video/README.md`. They show the application form as it
-  was on 2026-10-24 (email and a required résumé); re-record to show the
-  changes below.
+- **Demo videos:** `video/` records and renders narrated demos (jobseekers ~57 s,
+  back office ~86 s; desktop and mobile). Re-recorded on 2026-10-25 for the
+  new application flow (mobile number, photo of a résumé, status check, hire
+  and close, PESO hire count), with dissolves instead of slides between
+  scenes. Rendered files are in `video/out/` (not committed; the previous cut
+  is in `video/out/previous/`). Demo data was removed from production
+  afterwards. See `video/README.md`.
 - **PESO pilot feedback (2026-10-25):** jobs can name a course or field of
   study; applicants give a mobile number (required) and may attach up to three
   files including photos (shrunk, location data removed) or describe their

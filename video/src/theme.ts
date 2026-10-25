@@ -18,7 +18,7 @@ export const C = {
 };
 
 export const FPS = 30;
-export const TRANSITION = 14; // frames each transition overlaps
+export const TRANSITION = 20; // frames each transition overlaps (0.67 s)
 
 export type Format = "desktop" | "mobile";
 export const SIZE: Record<Format, { width: number; height: number }> = {

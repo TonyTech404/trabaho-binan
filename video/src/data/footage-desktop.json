@@ -1,11 +1,11 @@
 {
   "admin-audit": {
     "file": "footage/desktop/admin-audit.mp4",
-    "duration": 5.102999925613403,
+    "duration": 5.141000032424927,
     "marks": [
       {
         "label": "list",
-        "t": 1.684999942779541,
+        "t": 1.687999963760376,
         "box": {
           "x": 360,
           "y": 281.421875,
@@ -21,11 +21,11 @@
   },
   "admin-settings": {
     "file": "footage/desktop/admin-settings.mp4",
-    "duration": 3.9549999237060547,
+    "duration": 4.031000137329102,
     "marks": [
       {
         "label": "form",
-        "t": 1.5850000381469727,
+        "t": 1.5859999656677246,
         "box": {
           "x": 360,
           "y": 170.796875,
@@ -41,11 +41,11 @@
   },
   "employer-applications": {
     "file": "footage/desktop/employer-applications.mp4",
-    "duration": 18.29200005531311,
+    "duration": 21.2979998588562,
     "marks": [
       {
         "label": "nav",
-        "t": 0.9809999465942383,
+        "t": 0.9909999370574951,
         "box": {
           "x": 104,
           "y": 128,
@@ -58,13 +58,27 @@
         }
       },
       {
-        "label": "download",
-        "t": 9.592999935150146,
+        "label": "contact",
+        "t": 8.40399980545044,
         "box": {
           "x": 377,
-          "y": 438.984375,
-          "width": 192.796875,
+          "y": 283.9375,
+          "width": 88.46875,
           "height": 44
+        },
+        "viewport": {
+          "width": 1440,
+          "height": 810
+        }
+      },
+      {
+        "label": "photo",
+        "t": 12.16599988937378,
+        "box": {
+          "x": 377,
+          "y": 349.53125,
+          "width": 216.5,
+          "height": 288
         },
         "viewport": {
           "width": 1440,
@@ -75,11 +89,11 @@
   },
   "employer-dashboard": {
     "file": "footage/desktop/employer-dashboard.mp4",
-    "duration": 5.791000127792358,
+    "duration": 4.45199990272522,
     "marks": [
       {
         "label": "post",
-        "t": 1.1850001811981201,
+        "t": 1.1989998817443848,
         "box": {
           "x": 1204.453125,
           "y": 82,
@@ -95,11 +109,11 @@
   },
   "employer-form": {
     "file": "footage/desktop/employer-form.mp4",
-    "duration": 22.861000061035156,
+    "duration": 27.986000061035156,
     "marks": [
       {
         "label": "description",
-        "t": 5.0950000286102295,
+        "t": 5.668999910354614,
         "box": {
           "x": 381,
           "y": 796.703125,
@@ -112,11 +126,25 @@
         }
       },
       {
+        "label": "course",
+        "t": 10.901000022888184,
+        "box": {
+          "x": 858,
+          "y": 332.828125,
+          "width": 457,
+          "height": 44
+        },
+        "viewport": {
+          "width": 1440,
+          "height": 810
+        }
+      },
+      {
         "label": "accepts",
-        "t": 18.698999881744385,
+        "t": 23.536999940872192,
         "box": {
           "x": 394,
-          "y": 323.640625,
+          "y": 323.765625,
           "width": 20,
           "height": 20
         },
@@ -127,16 +155,36 @@
       }
     ]
   },
+  "employer-hire": {
+    "file": "footage/desktop/employer-hire.mp4",
+    "duration": 13.42799997329712,
+    "marks": [
+      {
+        "label": "filled",
+        "t": 6.271999835968018,
+        "box": {
+          "x": 1034,
+          "y": 291.96875,
+          "width": 284,
+          "height": 27.546875
+        },
+        "viewport": {
+          "width": 1440,
+          "height": 810
+        }
+      }
+    ]
+  },
   "employer-submit": {
     "file": "footage/desktop/employer-submit.mp4",
-    "duration": 6.869999885559082,
+    "duration": 6.015000104904175,
     "marks": [
       {
         "label": "submit",
-        "t": 0.25799989700317383,
+        "t": 0.26600003242492676,
         "box": {
           "x": 377,
-          "y": 729.328125,
+          "y": 729.453125,
           "width": 176,
           "height": 44
         },
@@ -149,14 +197,14 @@
   },
   "reviewer-approve": {
     "file": "footage/desktop/reviewer-approve.mp4",
-    "duration": 9.794000148773193,
+    "duration": 9.560999870300293,
     "marks": [
       {
         "label": "approve",
-        "t": 4.26800012588501,
+        "t": 4.3480000495910645,
         "box": {
           "x": 377,
-          "y": 306.140625,
+          "y": 142.140625,
           "width": 184.171875,
           "height": 44
         },
@@ -169,11 +217,11 @@
   },
   "reviewer-overview": {
     "file": "footage/desktop/reviewer-overview.mp4",
-    "duration": 6.266000032424927,
+    "duration": 4.825999975204468,
     "marks": [
       {
         "label": "waiting",
-        "t": 1.4769999980926514,
+        "t": 1.502000093460083,
         "box": {
           "x": 360,
           "y": 211.390625,
@@ -187,17 +235,37 @@
       }
     ]
   },
-  "visitor-apply": {
-    "file": "footage/desktop/visitor-apply.mp4",
-    "duration": 21.151000022888184,
+  "reviewer-results": {
+    "file": "footage/desktop/reviewer-results.mp4",
+    "duration": 4.897000074386597,
     "marks": [
       {
-        "label": "resume",
-        "t": 12.424000024795532,
+        "label": "results",
+        "t": 2.0180001258850098,
         "box": {
-          "x": 453,
-          "y": 323.6875,
-          "width": 566,
+          "x": 360,
+          "y": 243.390625,
+          "width": 976,
+          "height": 94.0625
+        },
+        "viewport": {
+          "width": 1440,
+          "height": 810
+        }
+      }
+    ]
+  },
+  "visitor-apply": {
+    "file": "footage/desktop/visitor-apply.mp4",
+    "duration": 21.907999992370605,
+    "marks": [
+      {
+        "label": "mobile",
+        "t": 10.984999895095825,
+        "box": {
+          "x": 408,
+          "y": 283.234375,
+          "width": 624,
           "height": 44
         },
         "viewport": {
@@ -206,8 +274,22 @@
         }
       },
       {
+        "label": "files",
+        "t": 12.734999895095825,
+        "box": {
+          "x": 408,
+          "y": 388.984375,
+          "width": 624,
+          "height": 21.75
+        },
+        "viewport": {
+          "width": 1440,
+          "height": 810
+        }
+      },
+      {
         "label": "sent",
-        "t": 18.543999910354614,
+        "t": 19.500999927520752,
         "box": {
           "x": 460,
           "y": 102,
@@ -223,11 +305,11 @@
   },
   "visitor-filters": {
     "file": "footage/desktop/visitor-filters.mp4",
-    "duration": 9.311999797821045,
+    "duration": 9.723999977111816,
     "marks": [
       {
         "label": "filters",
-        "t": 0.685999870300293,
+        "t": 0.6869997978210449,
         "box": {
           "x": 168,
           "y": 543.515625,
@@ -243,11 +325,11 @@
   },
   "visitor-home": {
     "file": "footage/desktop/visitor-home.mp4",
-    "duration": 6.613999843597412,
+    "duration": 6.709000110626221,
     "marks": [
       {
         "label": "results",
-        "t": 1.7829999923706055,
+        "t": 1.7920000553131104,
         "box": {
           "x": 472,
           "y": 311.890625,
@@ -263,11 +345,11 @@
   },
   "visitor-job": {
     "file": "footage/desktop/visitor-job.mp4",
-    "duration": 9.330999851226807,
+    "duration": 9.84600019454956,
     "marks": [
       {
         "label": "facts",
-        "t": 4.309000015258789,
+        "t": 4.638000011444092,
         "box": {
           "x": 168,
           "y": 97.046875,
@@ -281,7 +363,7 @@
       },
       {
         "label": "apply",
-        "t": 6.858999967575073,
+        "t": 7.2820000648498535,
         "box": {
           "x": 938,
           "y": 294.015625,
@@ -297,14 +379,14 @@
   },
   "visitor-safety": {
     "file": "footage/desktop/visitor-safety.mp4",
-    "duration": 9.650000095367432,
+    "duration": 9.50600004196167,
     "marks": [
       {
         "label": "warning",
-        "t": 1.6029999256134033,
+        "t": 1.6949999332427979,
         "box": {
           "x": 990,
-          "y": 370.140625,
+          "y": 1021.140625,
           "width": 248,
           "height": 23.375
         },
@@ -317,15 +399,35 @@
   },
   "visitor-search": {
     "file": "footage/desktop/visitor-search.mp4",
-    "duration": 7.503999948501587,
+    "duration": 7.93399977684021,
     "marks": [
       {
         "label": "results",
-        "t": 4.861999988555908,
+        "t": 5.211999893188477,
         "box": {
           "x": 472,
           "y": 318.03125,
           "width": 126.3125,
+          "height": 31.71875
+        },
+        "viewport": {
+          "width": 1440,
+          "height": 810
+        }
+      }
+    ]
+  },
+  "visitor-status": {
+    "file": "footage/desktop/visitor-status.mp4",
+    "duration": 9.090999841690063,
+    "marks": [
+      {
+        "label": "result",
+        "t": 6.490000009536743,
+        "box": {
+          "x": 430,
+          "y": 202.640625,
+          "width": 580,
           "height": 31.71875
         },
         "viewport": {

@@ -4,7 +4,8 @@
  *   node scripts/capture.mjs desktop|mobile [--base https://trabaho.bantaybinan.com] [--resolve host:ip] [--only a,b]
  *
  * Needs the demo accounts from demo-setup.ts. Creates one clearly labelled
- * demo vacancy per run (publicly visible until demo-cleanup.ts runs).
+ * demo vacancy per run (publicly visible until demo-cleanup.ts runs), applies
+ * to it, and marks the demo applicant hired, which closes it.
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -33,6 +34,11 @@ const OUT = join(ROOT, "footage", format);
 const DEMO_JOB = touch
   ? "Store Cashier (DEMO – not a real vacancy)"
   : "Bakery Helper (DEMO – not a real vacancy)";
+const DEMO_EDUCATION = touch
+  ? { level: "senior_high", course: "Accountancy, Business and Management (ABM) strand" }
+  : { level: "vocational", course: "Bread and Pastry Production NC II" };
+// Not an assigned Philippine mobile prefix, so no real person can be reached.
+const DEMO_MOBILE = "0900 000 1234";
 
 const contextOptions = touch
   ? { ...devices["iPhone 14"], viewport: { width: 390, height: 844 }, deviceScaleFactor: 3 }
@@ -73,16 +79,20 @@ async function record(who, name, fn) {
 }
 const settle = (page) => page.waitForLoadState("networkidle").catch(() => {});
 
-// Sample résumé used by the jobseeker scene.
-async function makeResume() {
-  const page = await browser.newPage();
-  await page.setContent(`<html><body style="font-family:Helvetica,Arial;padding:48px;color:#1a2620">
+// Sample résumé, as a phone photo of a printed page, used by the jobseeker scene.
+async function makeResumePhoto() {
+  const page = await browser.newPage({ viewport: { width: 900, height: 1200 } });
+  await page.setContent(`<html><body style="margin:0;height:100vh;display:grid;place-items:center;
+    background:radial-gradient(circle at 30% 20%,#c9b48f,#a88d63)">
+    <div style="width:680px;height:960px;background:#fbfaf6;transform:rotate(-2.2deg);
+      box-shadow:0 18px 40px rgba(0,0,0,.35);font-family:Helvetica,Arial;color:#1a2620;
+      padding:56px;box-sizing:border-box">
     <p style="color:#b42318;font-weight:bold">SAMPLE FOR A DEMO VIDEO — NOT A REAL PERSON</p>
-    <h1 style="margin:0">Juan Dela Cruz</h1><p>Biñan, Laguna · juan.demo@example.com</p>
+    <h1 style="margin:0;font-size:44px">Juan Dela Cruz</h1><p>Biñan, Laguna</p>
     <h2>Experience</h2><p>Kitchen helper, 2 years. Food handling, cleaning, inventory.</p>
-    <h2>Education</h2><p>Senior high school graduate</p></body></html>`);
-  const path = join(ROOT, "footage", "sample-resume.pdf");
-  await page.pdf({ path, format: "A4" });
+    <h2>Education</h2><p>Senior high school graduate</p></div></body></html>`);
+  const path = join(ROOT, "footage", "sample-resume-photo.jpg");
+  await page.screenshot({ path, type: "jpeg", quality: 85 });
   await page.close();
   return path;
 }
@@ -91,7 +101,8 @@ const employer = await newPage(creds.employer.email);
 const reviewer = await newPage(creds.reviewer.email);
 const admin = await newPage(creds.admin.email);
 const visitor = await newPage(null);
-const resume = await makeResume();
+const resumePhoto = await makeResumePhoto();
+let reference = null; // set when the demo applicant applies
 console.log(`Recording ${format} from ${BASE}`);
 
 /* ----------------------------- Employer posts ----------------------------- */
@@ -122,7 +133,10 @@ await scene("employer-form", employer, async ({ page, rec, act }) => {
       "Demo listing for a how-to video. Not a real vacancy: please do not apply.",
       14,
     );
-    await act.select(page.locator('[name="educationLevel"]'), "high_school");
+    await act.select(page.locator('[name="educationLevel"]'), DEMO_EDUCATION.level);
+    const course = page.locator('[name="fieldOfStudy"]');
+    await rec.mark("course", course);
+    await act.type(course, DEMO_EDUCATION.course, 24);
     await act.select(page.locator('[name="experienceLevel"]'), "none");
     await act.type(page.locator('[name="salaryMin"]'), "16000", 60);
     await act.type(page.locator('[name="salaryMax"]'), "18000", 60);
@@ -258,27 +272,32 @@ await scene("visitor-apply", visitor, async ({ page, rec, act }) => {
     await act.click(page.getByRole("link", { name: DEMO_JOB }).first());
     await page.getByRole("heading", { name: DEMO_JOB }).waitFor();
     await sleep(600);
-    await act.click(page.getByRole("link", { name: "Apply with your résumé" }));
+    await act.click(page.getByRole("link", { name: "Apply now" }));
     await page.getByRole("heading", { name: /Apply for/ }).waitFor();
     await sleep(500);
     await act.type(page.getByLabel("Full name"), "Juan Dela Cruz", 55);
-    await act.type(page.getByLabel("Email address"), "juan.demo@example.com", 30);
-    const file = page.getByLabel("Résumé", { exact: true });
+    const mobile = page.getByLabel("Mobile number");
+    await act.type(mobile, DEMO_MOBILE, 60);
+    await rec.mark("mobile", mobile);
+    const file = page.getByLabel("Résumé or photos");
     await act.reveal(file, { at: 0.4, ms: 700 });
     await act.point(file);
     await file.setInputFiles({
-      name: "Juan Dela Cruz CV.pdf",
-      mimeType: "application/pdf",
-      buffer: readFileSync(resume),
+      name: "resume-photo.jpg",
+      mimeType: "image/jpeg",
+      buffer: readFileSync(resumePhoto),
     });
-    await rec.mark("resume", file);
-    await sleep(700);
+    const list = page.getByRole("list", { name: "Files to send" });
+    await list.waitFor();
+    await rec.mark("files", list);
+    await sleep(900);
     await act.click(page.getByRole("checkbox"));
     await act.click(page.getByRole("button", { name: "Send application" }));
     await page.getByText("Your application was sent").waitFor({ timeout: 20000 });
     await act.reveal(page.getByText("Your application was sent"), { at: 0.15, ms: 600 });
     await rec.mark("sent", page.getByText("Your application was sent"));
-    await sleep(2200);
+    reference = (await page.getByText(/^TB-[0-9A-Z]{6}$/).innerText()).trim();
+    await sleep(2000);
   });
 });
 
@@ -301,7 +320,21 @@ await scene("visitor-safety", visitor, async ({ page, rec, act }) => {
 });
 
 /* --------------------------- Applications inbox --------------------------- */
+// A second fictional applicant, off camera, so the hire scene has someone to notify.
+async function applyOffCamera(name, mobile) {
+  const page = visitor.page;
+  await page.goto(`/?q=${encodeURIComponent(touch ? "store cashier" : "bakery helper")}`);
+  await page.getByRole("link", { name: DEMO_JOB }).first().click();
+  await page.getByRole("link", { name: "Apply now" }).click();
+  await page.getByLabel("Full name").fill(name);
+  await page.getByLabel("Mobile number").fill(mobile);
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "Send application" }).click();
+  await page.getByText("Your application was sent").waitFor({ timeout: 20000 });
+}
+
 await scene("employer-applications", employer, async ({ page, rec, act }) => {
+  await applyOffCamera("Maria Santos (demo)", "0900 000 5678");
   await page.goto("/employer");
   await settle(page);
   await record(employer, "employer-applications", async () => {
@@ -314,17 +347,76 @@ await scene("employer-applications", employer, async ({ page, rec, act }) => {
     await act.click(page.getByRole("link", { name: "Juan Dela Cruz" }).first());
     await page.getByRole("heading", { name: "Juan Dela Cruz" }).waitFor();
     await sleep(800);
-    const dl = page.getByRole("link", { name: "Download résumé" });
-    await act.reveal(dl, { at: 0.35, ms: 800 });
-    await rec.mark("download", dl);
-    await act.point(dl);
+    const call = page.getByRole("link", { name: "Call", exact: true });
+    await act.reveal(call, { at: 0.35, ms: 800 });
+    await rec.mark("contact", call);
+    await act.point(call);
+    await sleep(600);
+    await act.point(page.getByRole("link", { name: "Text", exact: true }));
+    await sleep(700);
+    const photo = page.getByRole("img", { name: /Sent by Juan Dela Cruz/ });
+    await act.reveal(photo, { at: 0.3, ms: 800 });
+    await rec.mark("photo", photo);
+    await act.point(photo);
     await sleep(1000);
     const status = page.getByLabel("Status");
-    await act.select(status, "shortlisted");
+    await act.select(status, "interview");
     await act.click(page.getByRole("button", { name: "Save status" }));
     await page.getByText("Application status saved.").first().waitFor();
     await act.reveal(page.locator("h1").first(), { at: 0.1, ms: 600 });
+    await sleep(1300);
+  });
+});
+
+/* ------------------------- Applicant checks status ------------------------ */
+await scene("visitor-status", visitor, async ({ page, rec, act }) => {
+  if (!reference) throw new Error("visitor-status needs visitor-apply in the same run.");
+  await page.goto(`/application-status?ref=${reference}`);
+  await settle(page);
+  await record(visitor, "visitor-status", async () => {
+    await sleep(600);
+    await act.type(page.getByLabel("Mobile number or email"), DEMO_MOBILE, 55);
+    await act.click(page.getByRole("button", { name: "Check status" }));
+    const result = page.getByRole("heading", { name: "For interview" });
+    await result.waitFor();
+    await act.reveal(result, { at: 0.25, ms: 700 });
+    await rec.mark("result", result);
+    await sleep(2200);
+  });
+});
+
+/* ------------------------- Hire and close the job ------------------------- */
+await scene("employer-hire", employer, async ({ page, rec, act }) => {
+  await record(employer, "employer-hire", async () => {
+    await sleep(500);
+    await act.select(page.getByLabel("Status"), "hired");
+    await act.click(page.getByRole("button", { name: "Save status" }));
+    const filled = page.getByRole("heading", { name: "Position filled?" });
+    await filled.waitFor();
+    await act.reveal(filled, { at: 0.3, ms: 700 });
+    await rec.mark("filled", filled);
+    await act.point(page.getByRole("checkbox"));
+    await sleep(1100);
+    await act.click(page.getByRole("button", { name: "Close job" }));
+    await page
+      .getByText(/Closed jobs leave the listings/)
+      .first()
+      .waitFor();
+    await act.reveal(page.locator("h1").first(), { at: 0.1, ms: 600 });
     await sleep(1500);
+  });
+});
+
+await scene("reviewer-results", reviewer, async ({ page, rec, act }) => {
+  await page.goto("/manage");
+  await settle(page);
+  await record(reviewer, "reviewer-results", async () => {
+    await sleep(500);
+    const results = page.locator('section[aria-labelledby="results-heading"]');
+    await act.reveal(results, { at: 0.3, ms: 1100 });
+    await rec.mark("results", results);
+    await act.point(page.getByText(/hired through Trabaho Biñan/).first());
+    await sleep(1800);
   });
 });
 

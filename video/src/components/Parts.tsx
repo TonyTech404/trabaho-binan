@@ -55,7 +55,7 @@ function Logos({ size }: { size: number }) {
 }
 
 const pop = (frame: number, fps: number, delay: number) =>
-  spring({ frame: frame - delay, fps, config: { damping: 14, stiffness: 120, mass: 0.7 } });
+  spring({ frame: frame - delay, fps, config: { damping: 18, stiffness: 110, mass: 0.8 } });
 
 export function Intro({
   title,
@@ -287,11 +287,36 @@ export function Outro({
   );
 }
 
-export function Headline({ text, format }: { text: string; format: Format }) {
+/**
+ * The scene's headline. Between two clips the old words fade out during the
+ * first half of the dissolve and the new ones rise in during the second half,
+ * so the two never overlap; the gold bar stays in place.
+ */
+export function Headline({
+  text,
+  format,
+  continued = false,
+  fadeOutAt,
+}: {
+  text: string;
+  format: Format;
+  /** The previous scene was also a clip with a headline. */
+  continued?: boolean;
+  /** Frame at which the next clip starts dissolving in. */
+  fadeOutAt?: number;
+}) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const m = format === "mobile";
   const words = text.split(" ");
+  const start = continued ? Math.round(TRANSITION * 0.55) : 6;
+  const out =
+    fadeOutAt === undefined
+      ? 1
+      : interpolate(frame, [fadeOutAt, fadeOutAt + Math.round(TRANSITION * 0.45)], [1, 0], {
+          ...clamp,
+          easing: Easing.out(Easing.quad),
+        });
   return (
     <div
       style={{
@@ -321,16 +346,16 @@ export function Headline({ text, format }: { text: string; format: Format }) {
             height: 46,
             borderRadius: 4,
             background: C.gold,
-            transform: `scaleY(${interpolate(frame, [0, 10], [0, 1], clamp)})`,
+            transform: `scaleY(${continued ? 1 : interpolate(frame, [0, 10], [0, 1], { ...clamp, easing: Easing.out(Easing.cubic) })})`,
           }}
         />
       )}
       <span>
         {words.map((w, i) => {
           const s = spring({
-            frame: frame - 6 - i * 3,
+            frame: frame - start - i * 3,
             fps,
-            config: { damping: 16, stiffness: 140 },
+            config: { damping: 200, stiffness: 120 },
           });
           return (
             <span
@@ -338,8 +363,8 @@ export function Headline({ text, format }: { text: string; format: Format }) {
               style={{
                 display: "inline-block",
                 marginRight: "0.26em",
-                opacity: s,
-                transform: `translateY(${(1 - s) * 24}px)`,
+                opacity: s * out,
+                transform: `translateY(${(1 - s) * 18}px)`,
               }}
             >
               {w}

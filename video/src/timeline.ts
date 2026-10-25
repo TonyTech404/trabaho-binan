@@ -39,7 +39,7 @@ export interface TimedScene extends SceneSpec {
   rate: number; // clip playback rate
 }
 
-const VOICE_DELAY = 10;
+const VOICE_DELAY = 12;
 
 export function buildTimeline(video: VideoId, format: Format) {
   const footage = (format === "desktop" ? desktopFootage : mobileFootage) as Record<string, Clip>;
@@ -53,7 +53,7 @@ export function buildTimeline(video: VideoId, format: Format) {
     let rate = 1;
     let clipData: Clip | undefined;
     if (raw.type === "intro") frames = Math.max(voiceFrames + VOICE_DELAY + 30, 4 * FPS);
-    else if (raw.type === "chapter") frames = Math.round(1.5 * FPS);
+    else if (raw.type === "chapter") frames = Math.round(1.7 * FPS);
     else if (raw.type === "outro") frames = Math.max(voiceFrames + VOICE_DELAY + 75, 6 * FPS);
     else {
       clipData = footage[raw.clip!];

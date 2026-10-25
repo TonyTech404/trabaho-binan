@@ -21,7 +21,11 @@
   },
   "js-apply": {
     "file": "narration/js-apply.wav",
-    "seconds": 6.725
+    "seconds": 8.55
+  },
+  "js-status": {
+    "file": "narration/js-status.wav",
+    "seconds": 4
   },
   "js-safety": {
     "file": "narration/js-safety.wav",
@@ -33,7 +37,7 @@
   },
   "bo-intro": {
     "file": "narration/bo-intro.wav",
-    "seconds": 7.9
+    "seconds": 5.6
   },
   "bo-dashboard": {
     "file": "narration/bo-dashboard.wav",
@@ -41,7 +45,7 @@
   },
   "bo-form": {
     "file": "narration/bo-form.wav",
-    "seconds": 6.9
+    "seconds": 7.35
   },
   "bo-submit": {
     "file": "narration/bo-submit.wav",
@@ -57,7 +61,15 @@
   },
   "bo-applications": {
     "file": "narration/bo-applications.wav",
-    "seconds": 9.475
+    "seconds": 8.35
+  },
+  "bo-hire": {
+    "file": "narration/bo-hire.wav",
+    "seconds": 5.525
+  },
+  "bo-results": {
+    "file": "narration/bo-results.wav",
+    "seconds": 3.25
   },
   "bo-audit": {
     "file": "narration/bo-audit.wav",

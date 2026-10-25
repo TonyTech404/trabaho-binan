@@ -1,6 +1,6 @@
 /**
  * Removes the demo data created for the videos: closes and archives the demo
- * jobs, deletes their applications and résumé files, and suspends the demo
+ * jobs, deletes their applications and attached files, and suspends the demo
  * company and accounts (they can be reactivated by demo-setup.ts).
  *
  *   DATABASE_URL=… R2_BUCKET=trabaho-binan-resumes npx tsx --tsconfig ../tsconfig.cloudflare.json scripts/demo-cleanup.ts
@@ -41,10 +41,11 @@ async function main() {
       .from(schema.jobs)
       .where(eq(schema.jobs.organizationId, org.id));
 
-    // Applications and résumé files.
+    // Applications (including the demo hire, so it drops out of the placement
+    // count) and their files.
     const apps = demoJobs.length
       ? await db
-          .select({ id: schema.applications.id, key: schema.applications.resumeKey })
+          .select({ id: schema.applications.id })
           .from(schema.applications)
           .where(
             inArray(
@@ -54,19 +55,23 @@ async function main() {
           )
       : [];
     for (const a of apps) {
+      const files = await db
+        .select({ key: schema.applicationFiles.key })
+        .from(schema.applicationFiles)
+        .where(eq(schema.applicationFiles.applicationId, a.id));
       if (bucket) {
-        execFileSync(
-          "npx",
-          ["wrangler", "r2", "object", "delete", `${bucket}/${a.key}`, "--remote"],
-          {
-            stdio: "ignore",
-          },
-        );
+        for (const f of files) {
+          execFileSync(
+            "npx",
+            ["wrangler", "r2", "object", "delete", `${bucket}/${f.key}`, "--remote"],
+            { stdio: "ignore" },
+          );
+        }
       }
       await db.delete(schema.applications).where(eq(schema.applications.id, a.id));
     }
     console.log(
-      `Deleted ${apps.length} demo application(s)${bucket ? " and résumé file(s)" : " (files left: no R2_BUCKET)"}.`,
+      `Deleted ${apps.length} demo application(s)${bucket ? " and their files" : " (files left: no R2_BUCKET)"}.`,
     );
 
     for (const job of demoJobs) {
