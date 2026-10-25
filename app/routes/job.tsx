@@ -259,6 +259,9 @@ export default function JobPage({ loaderData }: Route.ComponentProps) {
               </FactRow>
               <FactRow icon={GraduationCap} term="Education">
                 {label(EDUCATION_LEVELS, job.educationLevel)}
+                {job.fieldOfStudy ? (
+                  <span className="block font-normal text-ink-muted">{job.fieldOfStudy}</span>
+                ) : null}
               </FactRow>
               <FactRow icon={Timer} term="Experience">
                 {label(EXPERIENCE_LEVELS, job.experienceLevel)}
@@ -297,6 +300,7 @@ export default function JobPage({ loaderData }: Route.ComponentProps) {
               <li>
                 <span className="font-semibold">Education:</span>{" "}
                 {label(EDUCATION_LEVELS, job.educationLevel)}
+                {job.fieldOfStudy ? ` (${job.fieldOfStudy})` : ""}
               </li>
               <li>
                 <span className="font-semibold">Experience:</span>{" "}

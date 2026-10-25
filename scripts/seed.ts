@@ -289,6 +289,7 @@ async function main() {
     });
     await publish(factory.id, {
       title: "Accounting Clerk",
+      fieldOfStudy: "BS Accountancy or BS Accounting Information System",
       description: `${SAMPLE_NOTE}\n\nPrepare vouchers, encode invoices and help with monthly reconciliation.`,
       qualifications: "Bachelor's degree in Accountancy, Accounting Technology or related course.",
       skills: "spreadsheets, bookkeeping",
@@ -303,6 +304,7 @@ async function main() {
     });
     await publish(bakeshop.id, {
       title: "Office Assistant Intern (OJT)",
+      fieldOfStudy: "Business Administration or Office Administration",
       description: `${SAMPLE_NOTE}\n\nSupport day-to-day office work: filing, encoding orders and answering messages. Suitable for students completing on-the-job training hours.`,
       educationLevel: "college_undergraduate",
       experienceLevel: "none",

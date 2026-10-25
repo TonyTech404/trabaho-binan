@@ -34,10 +34,13 @@ _Screenshots use synthetic demo data (marked by the yellow banner)._
   education and experience ("jobs open to my level"), employer or agency, and
   work setup.
 - Every listing shows where the work is, the pay (or _Not disclosed_), the
-  closing date, and clear instructions to apply online, by email or in person.
-- Jobs posted by employers or PESO can take applications here: the jobseeker
-  uploads a résumé (PDF or Word, up to 5 MB) and gets a reference number.
-  Listings copied from public announcements link to the original instead.
+  education and course required, the closing date, and clear instructions to
+  apply online, by email or in person.
+- Jobs posted by employers or PESO can take applications here. The jobseeker
+  gives a mobile number; a résumé is optional and can be a PDF, a Word file or
+  up to three photos (location data is removed). They get a reference number
+  and can check their status at _Check your application_. Listings copied from
+  public announcements link to the original instead.
 - Closed and expired listings keep their page with a notice, but cannot be
   applied to. Anyone can report a listing.
 
@@ -49,14 +52,17 @@ _Screenshots use synthetic demo data (marked by the yellow banner)._
   and review employers' proposed changes field by field.
 - Verify or suspend employers, invite employer staff, handle reports, see
   listings that are closing soon or need reconfirmation, and export CSV.
+- The overview counts people hired through the site (total and last 30 days).
 
 **For invited employers**
 
 - Draft and submit vacancies, read review feedback, close a filled job
   immediately, and request changes or extensions. The approved version stays
   live until a reviewer approves the change.
-- An applications inbox for their own jobs: contact details, résumé download
-  and a status (new, reviewed, shortlisted, interview, hired, not selected).
+- An applications inbox for their own jobs: Call and Text buttons, attached
+  files and a status (new, reviewed, shortlisted, interview, hired, not
+  selected). After a hire they can close the job and mark the other applicants
+  not selected in one step.
 - Employers only ever see their own organization's records.
 
 **For administrators**
@@ -65,8 +71,8 @@ _Screenshots use synthetic demo data (marked by the yellow banner)._
   password-reset links, view the audit history and edit site settings.
 
 Out of scope for this release: jobseeker accounts and saved profiles,
-applicant-visible status tracking, email notifications, AI matching, chat, SMS
-and automatic Facebook posting.
+email and SMS notifications, AI matching, chat and automatic Facebook
+posting.
 
 ## Technology
 

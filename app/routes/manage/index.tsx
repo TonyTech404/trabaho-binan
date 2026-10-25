@@ -6,6 +6,7 @@ import {
   Plus,
   ShieldQuestion,
   Timer,
+  UserCheck,
 } from "lucide-react";
 import { Link, useSearchParams } from "react-router";
 import { PageHeader } from "~/components/dashboard/shell";
@@ -17,6 +18,7 @@ import { requireStaffViewer } from "~/lib/session.server";
 import { daysUntil, describeAge, formatDate } from "~/lib/time";
 import { RECONFIRM_AFTER_DAYS } from "~/lib/constants";
 import { getStaffOverview } from "~/services/job-queries.server";
+import { countHires } from "~/services/applications.server";
 import type { Route } from "./+types/index";
 
 export const meta = () => [{ title: "Overview — Trabaho Biñan" }];
@@ -24,7 +26,11 @@ export const meta = () => [{ title: "Overview — Trabaho Biñan" }];
 export async function loader({ request, context }: Route.LoaderArgs) {
   const viewer = await requireStaffViewer(request, context);
   const db = await getServices(context).db();
-  return { name: viewer.name, ...(await getStaffOverview(db, viewer)) };
+  const [overview, hires] = await Promise.all([
+    getStaffOverview(db, viewer),
+    countHires(db, viewer),
+  ]);
+  return { name: viewer.name, ...overview, hires };
 }
 
 function TaskRow({
@@ -136,6 +142,32 @@ export default function Overview({ loaderData }: Route.ComponentProps) {
             empty="All employers verified"
           />
         </ul>
+      </section>
+
+      <section aria-labelledby="results-heading" className="mt-8">
+        <h2 id="results-heading" className="text-xl font-bold">
+          Results
+        </h2>
+        <p className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+          <UserCheck aria-hidden="true" className="size-5 self-center text-pine" />
+          <span className="text-2xl font-bold">{loaderData.hires.total}</span>
+          <span>
+            {loaderData.hires.total === 1 ? "person" : "people"} hired through Trabaho Biñan
+            {loaderData.hires.total > 0
+              ? `, ${loaderData.hires.last30Days} in the last 30 days`
+              : ""}
+            .
+          </span>
+          {loaderData.hires.total > 0 ? (
+            <Link to="/manage/applications?status=hired" className="link">
+              See who
+            </Link>
+          ) : null}
+        </p>
+        <p className="mt-1 text-sm text-ink-muted">
+          Hires that employers record on applications made on this site. Listings that link to other
+          sites are not counted.
+        </p>
       </section>
 
       <div className="mt-8 grid gap-6 xl:grid-cols-2">

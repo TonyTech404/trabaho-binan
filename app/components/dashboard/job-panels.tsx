@@ -134,6 +134,7 @@ const DIFF_FIELDS: {
     label: "Education",
     format: (v) => label(EDUCATION_LEVELS, v as string),
   },
+  { key: "fieldOfStudy", label: "Course or field of study" },
   {
     key: "experienceLevel",
     label: "Experience",

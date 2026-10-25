@@ -38,6 +38,7 @@ export const NOTICES: Record<string, string> = {
   user_updated: "Account updated.",
   link_revoked: "Link revoked. It can no longer be used.",
   application_status: "Application status saved.",
+  filled: "Done. Closed jobs leave the listings; applicants see their updated status.",
 };
 
 export function NoticeBanner() {

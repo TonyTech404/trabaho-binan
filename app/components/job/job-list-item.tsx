@@ -32,7 +32,10 @@ export function JobListItem({ job }: { job: Card }) {
       </p>
       <JobFactsInline job={job} />
       <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-ink-muted">
-        <Fact icon={GraduationCap}>{label(EDUCATION_LEVELS, job.educationLevel)}</Fact>
+        <Fact icon={GraduationCap}>
+          {label(EDUCATION_LEVELS, job.educationLevel)}
+          {job.fieldOfStudy ? `, ${job.fieldOfStudy}` : ""}
+        </Fact>
         <DeadlineNote deadlineAt={job.deadlineAt} />
       </div>
     </li>

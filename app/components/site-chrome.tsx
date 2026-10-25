@@ -91,6 +91,9 @@ export function SiteFooter() {
           <Link className="link min-h-9 content-center" to="/help">
             Help and safety tips
           </Link>
+          <Link className="link min-h-9 content-center" to="/application-status">
+            Check your application
+          </Link>
           <Link className="link min-h-9 content-center" to="/privacy">
             Privacy
           </Link>

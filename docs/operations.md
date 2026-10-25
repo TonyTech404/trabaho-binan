@@ -236,29 +236,49 @@ prints with the source, then drop it. Record the date and result in
 
 ## Applications and résumés
 
-Jobs posted on the site can take applications with a résumé (tick _Accept
-applications on Trabaho Biñan_ on the job form; it is on by default for new
-jobs and off for imported listings).
+Jobs posted on the site can take applications (tick _Accept applications on
+Trabaho Biñan_ on the job form; it is on by default for new jobs and off for
+imported listings).
 
-- Résumés are stored in private R2 buckets: `trabaho-binan-resumes`
-  (production) and `trabaho-binan-resumes-staging`. Public access (r2.dev and
+- **What applicants give:** full name and a Philippine mobile number
+  (required; stored as `+639…`), and optionally an email, a short work
+  history, a message, and up to three files (PDF, DOCX, DOC, JPG or PNG; 5 MB
+  each, 10 MB in total). A résumé is not required.
+- **Photos:** the browser shrinks photos before upload (longest side 2000 px).
+  The server then removes EXIF/XMP/IPTC and comments from JPEGs (GPS location,
+  camera details; only the rotation flag is kept) and text, time and EXIF
+  chunks from PNGs. Files are checked by their contents, not their names.
+- **Storage:** files are kept in private R2 buckets, `trabaho-binan-resumes`
+  (production) and `trabaho-binan-resumes-staging`, under
+  `applications/<job id>/<application id>/<n>`. Public access (r2.dev and
   custom domains) is disabled; keep it that way. Locally, `npm run dev` uses a
   simulated bucket on disk.
-- Only members of the job's organization and staff (reviewers, admins) can see
-  an application. Résumés are streamed through `/applications/:id/resume`
-  after a permission check, and every download is recorded in the audit
-  history.
-- Files are checked by their contents (PDF, DOCX or DOC only) and limited to
-  5 MB. The form is rate-limited per connection.
-- **Retention:** the hourly cron deletes applications and their résumés 180
-  days after they were sent (`APPLICATION_RETENTION_DAYS`). Staging has no
-  cron, so its applications are not purged automatically.
-- **Deletion requests:** find the application by its reference (TB-…) in
-  Applications, then delete the database row and the R2 object
-  (`npx wrangler r2 object delete trabaho-binan-resumes/<resume_key>`). Record
-  the request in your incident or request log.
-- R2 Free covers 10 GB of storage and 1 million writes per month; résumés are
-  small, but check usage monthly with the other quotas.
+- **Access:** only members of the job's organization and staff (reviewers,
+  admins) can see an application. Files are streamed through
+  `/applications/:applicationId/files/:fileId` after a permission check (photos
+  and PDFs can be viewed inline; everything else downloads), and every access
+  is recorded in the audit history.
+- **Status check:** applicants look up their application at
+  `/application-status` with the reference (TB-…) and the mobile number or
+  email they gave. It shows the job, the employer and the status, never the
+  contact details. Lookups are rate-limited.
+- **Hires:** when an employer or staff member marks someone _Hired_, the
+  application page offers to close the job (if it is still listed) and to mark
+  the remaining open applications _Not selected_, so those applicants can see
+  the outcome. The PESO overview counts hires (total and last 30 days); _See
+  who_ lists them.
+- The application and status forms are rate-limited per connection.
+- **Retention:** the hourly cron deletes applications and their files 180 days
+  after they were sent (`APPLICATION_RETENTION_DAYS`). Staging has no cron, so
+  its applications are not purged automatically.
+- **Deletion requests:** find the application by its reference in
+  Applications. List its file keys
+  (`SELECT key FROM application_files WHERE application_id = '<id>'`), delete
+  each from R2 (`npx wrangler r2 object delete trabaho-binan-resumes/<key> --remote`),
+  then delete the application row (its file rows go with it). Record the
+  request in your incident or request log.
+- R2 Free covers 10 GB of storage and 1 million writes per month; application
+  files are small, but check usage monthly with the other quotas.
 
 ## Routine maintenance
 

@@ -6,9 +6,13 @@ import { PageHeader } from "~/components/dashboard/shell";
 import { ApplicationStatusBadge } from "~/components/dashboard/status";
 import { getServices } from "~/lib/context.server";
 import { APPLICATION_STATUSES } from "~/lib/labels";
-import { serviceErrorResult, withNotice } from "~/lib/route-helpers.server";
+import { purgeJobPages, serviceErrorResult, withNotice } from "~/lib/route-helpers.server";
 import { requireEmployerViewer } from "~/lib/session.server";
-import { getApplication, updateApplicationStatus } from "~/services/applications.server";
+import {
+  closeFilledJob,
+  getApplication,
+  updateApplicationStatus,
+} from "~/services/applications.server";
 import { NotFoundError } from "~/services/common.server";
 import type { ApplicationStatus } from "~/db/schema";
 import type { Route } from "./+types/application";
@@ -30,12 +34,20 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
 
 export async function action({ request, params, context }: Route.ActionArgs) {
   const viewer = await requireEmployerViewer(request, context);
-  const status = String((await request.formData()).get("status") ?? "");
-  if (!Object.hasOwn(APPLICATION_STATUSES, status)) {
-    return data({ error: "Choose a status." }, { status: 400 });
-  }
+  const form = await request.formData();
   const db = await getServices(context).db();
   try {
+    if (form.get("intent") === "close_job") {
+      const { closedJob } = await closeFilledJob(db, viewer, params.applicationId, {
+        notifyOthers: form.get("notifyOthers") === "on",
+      });
+      if (closedJob) await purgeJobPages(context, closedJob);
+      return redirect(withNotice(`/employer/applications/${params.applicationId}`, "filled"));
+    }
+    const status = String(form.get("status") ?? "");
+    if (!Object.hasOwn(APPLICATION_STATUSES, status)) {
+      return data({ error: "Choose a status." }, { status: 400 });
+    }
     await updateApplicationStatus(db, viewer, params.applicationId, status as ApplicationStatus);
   } catch (error) {
     return serviceErrorResult(error);

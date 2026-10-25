@@ -41,8 +41,9 @@ export default function Privacy({ loaderData }: Route.ComponentProps) {
         <h2>If you apply with your résumé on this site</h2>
         <ul>
           <li>
-            Some jobs let you apply here. The site keeps the name, email address, mobile number and
-            message you enter, and your résumé file.
+            Some jobs let you apply here. The site keeps the name, mobile number, email address (if
+            you give one), work experience and message you enter, and any files you attach. Photos
+            are made smaller and their location data is removed before they are stored.
           </li>
           <li>
             Only the employer for that job and PESO Biñan staff can see your application. Your

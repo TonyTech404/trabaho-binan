@@ -73,6 +73,7 @@ const LABELS: Record<string, string> = {
   description: "Job description",
   qualifications: "Other qualifications",
   skills: "Skills",
+  fieldOfStudy: "Course or field of study",
   educationLevel: "Minimum education",
   experienceLevel: "Experience required",
   salaryMin: "Minimum pay",
@@ -278,6 +279,15 @@ export function JobForm({
                 <Options map={EDUCATION_LEVELS} />
               </NativeSelect>
             )}
+          </Field>
+          <Field
+            name="fieldOfStudy"
+            label="Course or field of study"
+            optional
+            hint="For jobs that need a degree. Example: BS Accountancy, or Education. Leave blank if any course will do."
+            error={errors?.fieldOfStudy}
+          >
+            {(p) => <Input {...p} defaultValue={v("fieldOfStudy")} maxLength={120} />}
           </Field>
           <Field
             name="experienceLevel"

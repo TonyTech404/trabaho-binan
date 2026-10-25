@@ -97,6 +97,7 @@ const cardColumns = {
   salaryCurrency: jobs.salaryCurrency,
   salaryPeriod: jobs.salaryPeriod,
   educationLevel: jobs.educationLevel,
+  fieldOfStudy: jobs.fieldOfStudy,
   experienceLevel: jobs.experienceLevel,
   openings: jobs.openings,
   deadlineAt: jobs.deadlineAt,
@@ -118,6 +119,7 @@ export async function searchPublicJobs(db: Database, filters: PublicJobFilters, 
       tsquery ? sql`${jobs.searchVector} @@ to_tsquery('simple', ${tsquery})` : undefined,
       ilike(organizations.name, like),
       ilike(jobs.title, like),
+      ilike(jobs.fieldOfStudy, like),
     );
     if (textMatch) conditions.push(textMatch);
   }

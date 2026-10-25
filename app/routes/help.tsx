@@ -47,9 +47,17 @@ export default function Help({ loaderData }: Route.ComponentProps) {
         <h2>Applying</h2>
         <p>
           Each job page has a <strong>How to apply</strong> section. Some jobs let you apply right
-          here with your résumé: it goes to the employer and to PESO Biñan, and you get a reference
-          number. For other jobs you apply on the employer’s website, by email or in person.
-          Listings copied from other sites send you to the original announcement.
+          here: it goes to the employer and to PESO Biñan, and you get a reference number. You need
+          a mobile number. A résumé is optional: you can attach photos of your papers, or write your
+          work experience instead. For other jobs you apply on the employer’s website, by email or
+          in person. Listings copied from other sites send you to the original announcement.
+        </p>
+        <p>
+          To see what happened to an application you sent here, go to{" "}
+          <Link to="/application-status" className="link">
+            Check your application
+          </Link>{" "}
+          and enter your reference and mobile number.
         </p>
         <p>
           Read the qualifications and closing date before you apply, and prepare the documents the

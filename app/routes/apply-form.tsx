@@ -1,4 +1,5 @@
-import { CircleCheck, FileUp } from "lucide-react";
+import { CircleCheck, FileUp, Paperclip } from "lucide-react";
+import { useState } from "react";
 import { data, Form, Link, redirect, useNavigation } from "react-router";
 import { ErrorSummary, Field } from "~/components/form/field";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
@@ -8,7 +9,7 @@ import { Textarea } from "~/components/ui/textarea";
 import { APPLICATION_RETENTION_DAYS } from "~/lib/constants";
 import { getServices } from "~/lib/context.server";
 import { withinRateLimit } from "~/lib/rate-limit.server";
-import { MAX_RESUME_BYTES } from "~/lib/resume";
+import { MAX_FILE_BYTES, MAX_FILES } from "~/lib/resume";
 import { serviceErrorResult } from "~/lib/route-helpers.server";
 import {
   applicationInputSchema,
@@ -55,14 +56,12 @@ export async function action({ params, request, context }: Route.ActionArgs) {
   }
 
   const parsed = applicationInputSchema.safeParse(formToObject(form));
-  const file = form.get("resume");
+  const files = form.getAll("files").filter((f): f is File => f instanceof File && f.size > 0);
   const errors: FieldErrors = parsed.success ? {} : fieldErrors(parsed.error);
-  if (!(file instanceof File) || file.size === 0) {
-    errors.resume = "Choose your résumé file.";
-  } else if (file.size > MAX_RESUME_BYTES) {
-    errors.resume = "Your résumé must be 5 MB or smaller.";
-  }
-  if (!parsed.success || Object.keys(errors).length > 0 || !(file instanceof File)) {
+  if (files.length > MAX_FILES) errors.files = "Attach up to three files.";
+  else if (files.some((f) => f.size > MAX_FILE_BYTES))
+    errors.files = "Each file must be 5 MB or smaller.";
+  if (!parsed.success || Object.keys(errors).length > 0) {
     return data({ errors }, { status: 400 });
   }
 
@@ -73,10 +72,12 @@ export async function action({ params, request, context }: Route.ActionArgs) {
       services.resumes,
       params.publicId,
       parsed.data,
-      {
-        bytes: new Uint8Array(await file.arrayBuffer()),
-        filename: file.name,
-      },
+      await Promise.all(
+        files.map(async (f) => ({
+          bytes: new Uint8Array(await f.arrayBuffer()),
+          filename: f.name,
+        })),
+      ),
     );
     return { sent: true as const, reference };
   } catch (error) {
@@ -86,21 +87,74 @@ export async function action({ params, request, context }: Route.ActionArgs) {
 
 const LABELS = {
   fullName: "Full name",
-  email: "Email address",
   phone: "Mobile number",
-  resume: "Résumé",
+  email: "Email address",
+  files: "Résumé or photos",
+  experience: "Work experience",
   message: "Message",
   consent: "Agreement",
 };
 
+/**
+ * Photos are re-drawn in the browser before upload: smaller files on mobile
+ * data, the right way up, and without hidden location data. If anything
+ * fails, the original goes up and the server strips its metadata instead.
+ */
+async function shrinkPhoto(file: File): Promise<File> {
+  try {
+    const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+    const scale = Math.min(1, 2000 / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise<Blob | null>((done) => canvas.toBlob(done, "image/jpeg", 0.85));
+    if (!blob) return file;
+    return new File([blob], `${file.name.replace(/\.[^.]+$/, "") || "photo"}.jpg`, {
+      type: "image/jpeg",
+    });
+  } catch {
+    return file;
+  }
+}
+
+function sizeLabel(bytes: number) {
+  return bytes >= 1024 * 1024
+    ? `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+    : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
 export default function ApplyForm({ loaderData, actionData }: Route.ComponentProps) {
   const { job, organizationName } = loaderData;
   const navigation = useNavigation();
-  const busy = navigation.state === "submitting";
+  const [preparing, setPreparing] = useState(false);
+  const [chosen, setChosen] = useState<{ name: string; size: number }[]>([]);
+  const [fileNote, setFileNote] = useState<string | null>(null);
+  const busy = navigation.state === "submitting" || preparing;
   const errors =
     actionData && "errors" in actionData ? (actionData.errors as FieldErrors) : undefined;
   const formError = actionData && "error" in actionData ? String(actionData.error) : undefined;
   const retentionMonths = Math.round(APPLICATION_RETENTION_DAYS / 30);
+
+  async function onFiles(input: HTMLInputElement) {
+    const picked = Array.from(input.files ?? []);
+    setFileNote(picked.length > MAX_FILES ? "Only the first three files will be sent." : null);
+    setPreparing(true);
+    try {
+      const ready: File[] = [];
+      for (const f of picked.slice(0, MAX_FILES)) {
+        ready.push(f.type.startsWith("image/") ? await shrinkPhoto(f) : f);
+      }
+      const transfer = new DataTransfer();
+      ready.forEach((f) => transfer.items.add(f));
+      input.files = transfer.files;
+      setChosen(ready.map((f) => ({ name: f.name, size: f.size })));
+    } catch {
+      setChosen(picked.map((f) => ({ name: f.name, size: f.size })));
+    } finally {
+      setPreparing(false);
+    }
+  }
 
   if (actionData && "sent" in actionData) {
     return (
@@ -110,22 +164,27 @@ export default function ApplyForm({ loaderData, actionData }: Route.ComponentPro
           <AlertTitle>Your application was sent</AlertTitle>
           <AlertDescription>
             {organizationName} and PESO Biñan can now see your application for {job.title}. If you
-            are shortlisted, they will contact you by email or phone.
+            are shortlisted, they will call or text you.
             {actionData.reference ? (
               <>
                 {" "}
                 Your reference is <strong className="text-ink">{actionData.reference}</strong>. Keep
-                it in case you need to ask about your application.
+                it: you can use it to check your application.
               </>
             ) : null}
           </AlertDescription>
         </Alert>
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link to="/" className={buttonVariants({ variant: "outline" })}>
+          {actionData.reference ? (
+            <Link
+              to={`/application-status?ref=${actionData.reference}`}
+              className={buttonVariants({ variant: "outline" })}
+            >
+              Check your application
+            </Link>
+          ) : null}
+          <Link to="/" className={buttonVariants({ variant: "ghost" })}>
             Browse more jobs
-          </Link>
-          <Link to={job.path} className={buttonVariants({ variant: "ghost" })}>
-            Back to the job
           </Link>
         </div>
       </main>
@@ -140,7 +199,7 @@ export default function ApplyForm({ loaderData, actionData }: Route.ComponentPro
       <h1 className="mt-2 text-3xl font-bold [overflow-wrap:anywhere]">Apply for {job.title}</h1>
       <p className="mt-2 text-lg text-ink-muted">
         at {organizationName}. Your application goes to the employer and to PESO Biñan. It is free:
-        never pay to apply.
+        never pay to apply. No résumé? You can still apply.
       </p>
 
       <Form method="post" encType="multipart/form-data" className="mt-6 space-y-6" noValidate>
@@ -156,34 +215,62 @@ export default function ApplyForm({ loaderData, actionData }: Route.ComponentPro
           {(p) => <Input {...p} autoComplete="name" maxLength={120} required />}
         </Field>
         <Field
-          name="email"
-          label="Email address"
-          hint="Give an email address, a mobile number or both."
-          error={errors?.email}
-        >
-          {(p) => <Input {...p} type="email" autoComplete="email" maxLength={254} />}
-        </Field>
-        <Field name="phone" label="Mobile number" optional error={errors?.phone}>
-          {(p) => <Input {...p} type="tel" autoComplete="tel" inputMode="tel" maxLength={40} />}
-        </Field>
-        <Field
-          name="resume"
-          label="Résumé"
-          hint="PDF or Word file (.pdf, .docx or .doc), up to 5 MB."
-          error={errors?.resume}
+          name="phone"
+          label="Mobile number"
+          hint="The employer will call or text you on this number. Example: 0917 123 4567"
+          error={errors?.phone}
         >
           {(p) => (
-            <div className="flex items-center gap-3 rounded-md border border-dashed border-line-strong bg-wash px-3 py-3">
-              <FileUp aria-hidden="true" className="size-5 shrink-0 text-pine" />
-              <input
-                {...p}
-                type="file"
-                accept=".pdf,.docx,.doc,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                required
-                className="min-w-0 flex-1 text-base file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-md file:border file:border-line-strong file:bg-surface file:px-3 file:font-semibold file:text-ink hover:file:border-ink"
-              />
+            <Input {...p} type="tel" autoComplete="tel" inputMode="tel" maxLength={20} required />
+          )}
+        </Field>
+        <Field name="email" label="Email address" optional error={errors?.email}>
+          {(p) => <Input {...p} type="email" autoComplete="email" maxLength={254} />}
+        </Field>
+        <Field
+          name="files"
+          label="Résumé or photos"
+          optional
+          hint="Up to 3 files: a PDF or Word résumé, or clear photos of your papers (JPG or PNG). Photos are made smaller and their location data is removed."
+          error={errors?.files}
+        >
+          {(p) => (
+            <div className="space-y-2">
+              <div className="flex items-center gap-3 rounded-md border border-dashed border-line-strong bg-wash px-3 py-3">
+                <FileUp aria-hidden="true" className="size-5 shrink-0 text-pine" />
+                <input
+                  {...p}
+                  type="file"
+                  multiple
+                  accept="image/*,.pdf,.docx,.doc,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  onChange={(e) => onFiles(e.currentTarget)}
+                  className="min-w-0 flex-1 text-base file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-md file:border file:border-line-strong file:bg-surface file:px-3 file:font-semibold file:text-ink hover:file:border-ink"
+                />
+              </div>
+              {preparing ? <p className="text-sm text-ink-muted">Preparing your photos…</p> : null}
+              {fileNote ? <p className="text-sm font-semibold text-gold-ink">{fileNote}</p> : null}
+              {chosen.length > 0 && !preparing ? (
+                <ul className="space-y-1 text-sm" aria-label="Files to send">
+                  {chosen.map((f) => (
+                    <li key={f.name} className="flex items-center gap-2">
+                      <Paperclip aria-hidden="true" className="size-4 shrink-0 text-ink-subtle" />
+                      <span className="[overflow-wrap:anywhere]">{f.name}</span>
+                      <span className="text-ink-muted">({sizeLabel(f.size)})</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
             </div>
           )}
+        </Field>
+        <Field
+          name="experience"
+          label="Work experience"
+          optional
+          hint="No résumé? Write your past jobs, how long you worked there, and your skills."
+          error={errors?.experience}
+        >
+          {(p) => <Textarea {...p} rows={4} maxLength={1000} />}
         </Field>
         <Field
           name="message"
@@ -192,7 +279,7 @@ export default function ApplyForm({ loaderData, actionData }: Route.ComponentPro
           hint="For example, when you can start or which branch you prefer."
           error={errors?.message}
         >
-          {(p) => <Textarea {...p} rows={4} maxLength={1000} />}
+          {(p) => <Textarea {...p} rows={3} maxLength={1000} />}
         </Field>
 
         <div className="space-y-2">
@@ -213,8 +300,8 @@ export default function ApplyForm({ loaderData, actionData }: Route.ComponentPro
               className="mt-1 size-5 shrink-0 accent-pine"
             />
             <span>
-              I agree that {organizationName} and PESO Biñan may use the details and résumé I send
-              to consider me for this job. They are deleted after about {retentionMonths} months.{" "}
+              I agree that {organizationName} and PESO Biñan may use the details and files I send to
+              consider me for this job. They are deleted after about {retentionMonths} months.{" "}
               <Link to="/privacy#applications" className="link">
                 How your application is handled
               </Link>
@@ -230,7 +317,7 @@ export default function ApplyForm({ loaderData, actionData }: Route.ComponentPro
         </div>
 
         <Button type="submit" size="lg" disabled={busy}>
-          {busy ? "Sending…" : "Send application"}
+          {navigation.state === "submitting" ? "Sending…" : "Send application"}
         </Button>
       </Form>
     </main>

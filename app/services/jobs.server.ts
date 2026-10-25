@@ -34,6 +34,7 @@ export const JOB_CONTENT_KEYS = [
   "qualifications",
   "skills",
   "educationLevel",
+  "fieldOfStudy",
   "experienceLevel",
   "employmentType",
   "workSetup",

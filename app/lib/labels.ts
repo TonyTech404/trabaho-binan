@@ -105,6 +105,26 @@ export const APPLICATION_STATUSES = {
   withdrawn: "Withdrawn",
 } as const;
 
+/** What an applicant sees on the status page, in plain words. */
+export const APPLICANT_STATUS_TEXT: Record<string, { title: string; text: string }> = {
+  submitted: { title: "Sent", text: "The employer has not reviewed it yet." },
+  reviewed: { title: "Reviewed", text: "The employer has looked at your application." },
+  shortlisted: {
+    title: "Shortlisted",
+    text: "The employer may call or text you about the next step.",
+  },
+  interview: {
+    title: "For interview",
+    text: "Watch for a call or text from the employer about your interview.",
+  },
+  hired: { title: "Hired", text: "Congratulations! The employer has marked you as hired." },
+  not_selected: {
+    title: "Not selected",
+    text: "The employer chose other applicants this time. Keep applying: new jobs are added often.",
+  },
+  withdrawn: { title: "Withdrawn", text: "This application was withdrawn." },
+};
+
 export const ROLES = {
   admin: "Administrator",
   reviewer: "Reviewer",

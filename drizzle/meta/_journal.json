@@ -22,6 +22,20 @@
       "when": 1792842539543,
       "tag": "0002_applications",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792893374706,
+      "tag": "0003_applicant_files_and_field_of_study",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792893375103,
+      "tag": "0004_move_resumes_to_application_files",
+      "breakpoints": true
     }
   ]
 }

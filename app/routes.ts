@@ -8,6 +8,7 @@ export default [
     route("employers/:slug", "routes/employer-profile.tsx"),
     route("report/:publicId", "routes/report.tsx"),
     route("apply/:publicId/form", "routes/apply-form.tsx"),
+    route("application-status", "routes/application-status.tsx"),
     route("help", "routes/help.tsx"),
     route("privacy", "routes/privacy.tsx"),
     route("login", "routes/login.tsx"),
@@ -53,7 +54,7 @@ export default [
 
   route("account", "routes/account.tsx"),
   route("apply/:publicId", "routes/apply.ts"),
-  route("applications/:applicationId/resume", "routes/application-resume.ts"),
+  route("applications/:applicationId/files/:fileId", "routes/application-file.ts"),
   route("api/job-view/:publicId", "routes/api.job-view.ts"),
   route("sitemap.xml", "routes/sitemap.ts"),
   route("logout", "routes/logout.tsx"),

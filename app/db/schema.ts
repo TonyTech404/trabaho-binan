@@ -250,6 +250,8 @@ const jobContentColumns = () => ({
   qualifications: text("qualifications"),
   skills: text("skills"),
   educationLevel: educationLevelEnum("education_level").notNull(),
+  /** Optional course or field, e.g. "BS Accountancy", for jobs that need a degree. */
+  fieldOfStudy: text("field_of_study"),
   experienceLevel: experienceLevelEnum("experience_level").notNull(),
   employmentType: employmentTypeEnum("employment_type").notNull(),
   workSetup: workSetupEnum("work_setup").notNull().default("on_site"),
@@ -400,10 +402,8 @@ export const applications = pgTable(
     email: text("email"),
     phone: text("phone"),
     message: text("message"),
-    resumeKey: text("resume_key").notNull(),
-    resumeFilename: text("resume_filename").notNull(),
-    resumeContentType: text("resume_content_type").notNull(),
-    resumeSize: integer("resume_size").notNull(),
+    /** Short work history, for applicants without a résumé. */
+    experience: text("experience"),
     status: applicationStatusEnum("status").notNull().default("submitted"),
     statusUpdatedAt: timestamp("status_updated_at", { withTimezone: true }),
     statusUpdatedById: uuid("status_updated_by_id").references(() => users.id, {
@@ -417,6 +417,27 @@ export const applications = pgTable(
     index("applications_job_idx").on(t.jobId, t.createdAt),
     index("applications_created_idx").on(t.createdAt),
   ],
+);
+
+/**
+ * Files sent with an application (résumé pages or photos). Optional; up to
+ * three per application. The bytes live in the private R2 bucket under `key`.
+ */
+export const applicationFiles = pgTable(
+  "application_files",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    applicationId: uuid("application_id")
+      .notNull()
+      .references(() => applications.id, { onDelete: "cascade" }),
+    key: text("key").notNull(),
+    filename: text("filename").notNull(),
+    contentType: text("content_type").notNull(),
+    size: integer("size").notNull(),
+    position: integer("position").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("application_files_application_idx").on(t.applicationId, t.position)],
 );
 
 /** Daily aggregates only — no per-visitor data is stored. */
@@ -492,6 +513,7 @@ export type JobRevision = typeof jobRevisions.$inferSelect;
 export type JobEvent = typeof jobEvents.$inferSelect;
 export type ListingReport = typeof listingReports.$inferSelect;
 export type Application = typeof applications.$inferSelect;
+export type ApplicationFile = typeof applicationFiles.$inferSelect;
 export type ApplicationStatus = (typeof applicationStatusEnum.enumValues)[number];
 export type AuditEvent = typeof auditEvents.$inferSelect;
 export type AccountLink = typeof accountLinks.$inferSelect;

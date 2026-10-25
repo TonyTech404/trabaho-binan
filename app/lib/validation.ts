@@ -139,6 +139,7 @@ export function jobInputSchema(options: { now?: Date; maxListingDays?: number } 
       qualifications: optionalText(3000, "qualifications"),
       skills: optionalText(500, "skills"),
       educationLevel: enumField(EDUCATION_LEVELS, "Choose the minimum education."),
+      fieldOfStudy: optionalText(120, "course or field of study"),
       experienceLevel: enumField(EXPERIENCE_LEVELS, "Choose the experience required."),
       employmentType: enumField(EMPLOYMENT_TYPES, "Choose the employment type."),
       workSetup: enumField(WORK_SETUPS, "Choose the work setup."),
@@ -243,26 +244,49 @@ const organizationProfileFields = organizationFields.pick({
 export const organizationProfileSchema = withEmptyDefaults(organizationProfileFields);
 export type OrganizationProfileInput = z.output<typeof organizationProfileFields>;
 
-/** What an applicant types on the apply form. The résumé file is checked separately. */
+/**
+ * Philippine mobile numbers in any common spelling ("0917 123 4567",
+ * "+63 917-123-4567", "9171234567") become "+639171234567".
+ */
+export function normalizePhMobile(value: unknown): string | null {
+  const digits = cleanText(value).replace(/[\s().-]/g, "");
+  const m = /^(?:\+?63|0)?(9\d{9})$/.exec(digits);
+  return m ? `+63${m[1]}` : null;
+}
+
+/** "+639171234567" → "0917 123 4567", the way people write it here. */
+export function formatPhMobile(value: string): string {
+  const m = /^\+63(9\d{2})(\d{3})(\d{4})$/.exec(value);
+  return m ? `0${m[1]} ${m[2]} ${m[3]}` : value;
+}
+
+/** What an applicant types on the apply form. Files are checked separately. */
 export const applicationInputSchema = withEmptyDefaults(
   z.object({
     fullName: requiredText(1, 120, "your full name"),
+    phone: z.unknown().transform((v, ctx) => {
+      if (!cleanText(v)) {
+        ctx.addIssue({ code: "custom", message: "Enter your mobile number." });
+        return z.NEVER;
+      }
+      const phone = normalizePhMobile(v);
+      if (!phone) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Enter a mobile number, for example 0917 123 4567.",
+        });
+        return z.NEVER;
+      }
+      return phone;
+    }),
     email: optionalEmail,
-    phone: optionalPhone,
+    experience: optionalText(1000, "work experience"),
     message: optionalText(1000, "message"),
     consent: z
       .unknown()
       .refine((v) => v === "on", "Tick the box to agree before you send your application."),
   }),
-).superRefine((v, ctx) => {
-  if (!v.email && !v.phone) {
-    ctx.addIssue({
-      code: "custom",
-      path: ["email"],
-      message: "Give an email address or a mobile number so the employer can contact you.",
-    });
-  }
-});
+);
 export type ApplicationInput = z.output<typeof applicationInputSchema>;
 
 export const reasonSchema = (name = "reason") => requiredText(3, 1000, name);

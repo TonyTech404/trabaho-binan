@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { addDaysToDateString, manilaDateString } from "~/lib/time";
 import {
+  applicationInputSchema,
   cleanText,
   fieldErrors,
+  formatPhMobile,
   httpsUrl,
   jobInputSchema,
   MAX_LISTING_DAYS,
+  normalizePhMobile,
 } from "~/lib/validation";
 
 const now = new Date("2026-10-24T03:00:00Z"); // 11:00 in Manila
@@ -88,5 +91,40 @@ describe("job input validation", () => {
 
   it("strips control characters and collapses blank lines", () => {
     expect(cleanText("  Line one\r\n\n\n\nLine\u0000 two \t\n")).toBe("Line one\n\nLine two");
+  });
+});
+
+describe("applicant mobile numbers", () => {
+  it("accepts the common ways people write a Philippine mobile number", () => {
+    for (const v of [
+      "0917 123 4567",
+      "09171234567",
+      "+63 917-123-4567",
+      "639171234567",
+      "917 123 4567",
+      "(0917) 123.4567",
+    ]) {
+      expect(normalizePhMobile(v)).toBe("+639171234567");
+    }
+    expect(formatPhMobile("+639171234567")).toBe("0917 123 4567");
+  });
+
+  it("rejects landlines, short numbers and other countries", () => {
+    for (const v of ["(049) 511 1234", "0917 123 456", "+1 415 555 0100", "0817 123 4567", ""]) {
+      expect(normalizePhMobile(v)).toBeNull();
+    }
+  });
+
+  it("requires a mobile number on applications; email and files are optional", () => {
+    const missing = applicationInputSchema.safeParse({ fullName: "Juan", consent: "on" });
+    expect(missing.success).toBe(false);
+    const ok = applicationInputSchema.parse({
+      fullName: "Juan",
+      phone: "0917 123 4567",
+      consent: "on",
+    });
+    expect(ok.phone).toBe("+639171234567");
+    expect(ok.email).toBeNull();
+    expect(ok.experience).toBeNull();
   });
 });
